@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   FormField,
@@ -7,15 +7,15 @@ import {
   FormControl,
   FormDescription,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
-import { ReactNode } from 'react';
-import { useFormContext } from 'react-hook-form';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { ReactNode } from "react";
+import { useFormContext } from "react-hook-form";
 
 export interface InputFieldProps {
   name: string;
-  type?: 'text' | 'number' | 'email' | 'password' | 'time';
+  type?: "text" | "number" | "email" | "password" | "time";
   label?: ReactNode;
   placeholder?: string;
   className?: string;
@@ -31,7 +31,7 @@ export function InputField({
   name,
   label,
   description,
-  type = 'text',
+  type = "text",
   className,
   containerClassName,
   required,
@@ -46,14 +46,14 @@ export function InputField({
       name={name}
       control={control}
       render={({ field }) => (
-        <FormItem className={cn('space-y-0.5', containerClassName)}>
+        <FormItem className={cn("space-y-0.5", containerClassName)}>
           {label && (
             <FormLabel>
               {label} {required && <span className="text-destructive">*</span>}
             </FormLabel>
           )}
           <FormControl>
-            <div className='relative'>
+            <div className="relative">
               {leadingIcon && (
                 <div className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2">
                   {leadingIcon}
@@ -62,11 +62,17 @@ export function InputField({
               <Input
                 {...field}
                 type={type}
-                className={cn(className, leadingIcon && 'pl-10', trailingIcon && 'pr-10')}
-                value={field.value ?? ''}
-                onChange={e => {
-                  if (type === 'number') {
-                    field.onChange(e.target.value === '' ? null : Number(e.target.value));
+                className={cn(
+                  className,
+                  leadingIcon && "pl-10",
+                  trailingIcon && "pr-10"
+                )}
+                value={field.value ?? ""}
+                onChange={(e) => {
+                  if (type === "number") {
+                    field.onChange(
+                      e.target.value === "" ? null : Number(e.target.value)
+                    );
                   } else {
                     field.onChange(e.target.value);
                   }
