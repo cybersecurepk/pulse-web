@@ -6,87 +6,29 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { NavMain } from "./nav-main";
-import { VersionSwitcher } from "./version-switcher";
+import { AdminSidebar } from "./admin-sidebar";
+import { UserSidebar } from "./user-sidebar";
+import { PulseLogo } from "./pulse-logo";
 
-const data = {
-  versions: ["1.0.1", "1.1.0-alpha", "2.0.0-beta1"],
-  user: {
-    name: "Abu Bakar",
-    email: "abubakar@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
-    {
-      title: "Take Test",
-      url: "/take-test",
-    },
-    {
-      title: "User Tests",
-      url: "/user-tests",
-    },
-    {
-      title: "Assessment center",
-      url: "/",
-      items: [
-        {
-          title: "Instrument Creation",
-          url: "/test",
-          disabled: false,
-        },
-        {
-          title: "Battery Calibration",
-          url: "/",
-          disabled: true,
-        },
-      ],
-    },
-    {
-      title: "Evaluation Result",
-      url: "/result",
-    },
-    {
-      title: "Battery",
-      url: "/battery",
-    },
-    {
-      title: "Company Management",
-      url: "/company-management",
-      items: [
-        {
-          title: "Companies",
-          url: "/company-management/companies",
-          disabled: false,
-        },
-        {
-          title: "Users",
-          url: "/company-management/users",
-          disabled: false,
-        },
-        {
-          title: "Groups",
-          url: "/company-management/groups",
-          disabled: false,
-        },
-      ],
-    },
-  ],
-};
+type UserType = "admin" | "user";
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  userType?: UserType;
+}
+
+export function AppSidebar({ userType = "admin", ...props }: AppSidebarProps) {
   return (
-    <Sidebar {...props}>
-      <SidebarHeader>
-        <VersionSwitcher
-          versions={data.versions}
-          defaultVersion={data.versions[0]}
-        />
-        {/* <SearchForm /> */}
+    <Sidebar 
+      {...props}
+      className="border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
+    >
+      <SidebarHeader className="border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-800 dark:to-slate-900">
+        <PulseLogo />
       </SidebarHeader>
-      <SidebarContent className="gap-0">
-        <NavMain items={data.navMain} />
+      <SidebarContent className="gap-0 bg-white dark:bg-slate-900">
+        {userType === "admin" ? <AdminSidebar /> : <UserSidebar />}
       </SidebarContent>
-      <SidebarRail />
+      <SidebarRail className="bg-slate-100 dark:bg-slate-800 w-px" />
     </Sidebar>
   );
 }
