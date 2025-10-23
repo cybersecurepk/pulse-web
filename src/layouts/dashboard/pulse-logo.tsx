@@ -4,7 +4,7 @@ import * as React from "react";
 
 export function PulseLogo() {
   return (
-    <div className="flex items-center gap-3 px-4 py-4">
+    <div className="flex items-center gap-3 px-4 h-16">
       {/* Logo Icon */}
       <div className="relative">
         <div className="bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 p-2.5 rounded-xl shadow-lg">
@@ -23,13 +23,9 @@ export function PulseLogo() {
                 className="drop-shadow-sm"
               />
               {/* Pulse lines */}
-              <path
-                d="M8 8h2v4h4v2H8V8z"
-                fill="currentColor"
-                opacity="0.8"
-              />
+              <path d="M8 8h2v4h4v2H8V8z" fill="currentColor" opacity="0.8" />
             </svg>
-            
+
             {/* Animated pulse effect */}
             <div className="absolute inset-0 bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400 rounded-xl animate-pulse opacity-20"></div>
           </div>

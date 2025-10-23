@@ -21,11 +21,9 @@ import {
   LayoutDashboard,
   BookOpen,
   Users,
-  User,
   Bell,
   Shield,
   Settings,
-  LogOut,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -51,14 +49,8 @@ const userNavItems: NavItem[] = [
     url: "/user/tests",
     icon: BookOpen,
     items: [
-      {
-        title: "Active Tests",
-        url: "/user/tests",
-      },
-      {
-        title: "Completed Tests",
-        url: "/user/tests/completed",
-      },
+      { title: "Active Tests", url: "/user/tests" },
+      { title: "Completed Tests", url: "/user/tests/completed" },
     ],
   },
   {
@@ -81,14 +73,8 @@ const userNavItems: NavItem[] = [
     url: "/user/account",
     icon: Settings,
     items: [
-      {
-        title: "My Profile",
-        url: "/user/profile",
-      },
-      {
-        title: "Settings",
-        url: "/user/account/settings",
-      },
+      { title: "My Profile", url: "/user/profile" },
+      { title: "Settings", url: "/user/account/settings" },
     ],
   },
 ];
@@ -97,8 +83,8 @@ export function UserSidebar() {
   const pathname = usePathname();
 
   return (
-    <SidebarGroup>
-      <SidebarGroupContent className="px-3 py-4">
+    <SidebarGroup className="bg-[#1E40AF] text-white h-screen flex flex-col overflow-hidden">
+      <SidebarGroupContent className="px-3 py-4 flex-1 overflow-visible">
         <SidebarMenu className="space-y-1">
           {userNavItems.map((item) => {
             const isActive = pathname === item.url;
@@ -121,23 +107,21 @@ export function UserSidebar() {
                       <SidebarMenuButton
                         tooltip={item.title}
                         className={cn(
-                          "w-full justify-start gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800",
+                          "w-full justify-start gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200",
                           shouldHighlight
-                            ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25"
-                            : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
+                            ? "bg-gradient-to-r from-[#3B82F6] to-[#2563EB] text-white shadow-lg shadow-blue-500/30"
+                            : "text-blue-100 hover:bg-[#3B82F6]/20 hover:text-white"
                         )}
                       >
                         {item.icon && (
                           <item.icon
                             className={cn(
                               "h-5 w-5 transition-colors",
-                              shouldHighlight
-                                ? "text-white"
-                                : "text-slate-500 dark:text-slate-400"
+                              shouldHighlight ? "text-white" : "text-blue-200"
                             )}
                           />
                         )}
-                        <span className="flex-1 text-left">{item.title}</span>
+                        <span className="flex-1">{item.title}</span>
                         <ChevronRight className="h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
@@ -145,7 +129,6 @@ export function UserSidebar() {
                       <SidebarMenuSub className="space-y-1">
                         {item.items?.map((subItem) => {
                           const isSubActive = pathname === subItem.url;
-
                           return (
                             <SidebarMenuSubItem key={subItem.title}>
                               <SidebarMenuSubButton
@@ -154,8 +137,8 @@ export function UserSidebar() {
                                 className={cn(
                                   "w-full justify-start gap-3 rounded-lg px-4 py-2.5 text-sm transition-all duration-200 ml-6",
                                   isSubActive
-                                    ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-l-2 border-blue-500 font-medium"
-                                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200"
+                                    ? "bg-[#3B82F6]/25 text-white border-l-2 border-[#3B82F6] font-medium"
+                                    : "text-blue-100 hover:bg-[#3B82F6]/20 hover:text-white"
                                 )}
                               >
                                 <Link
@@ -165,10 +148,10 @@ export function UserSidebar() {
                                   {subItem.icon && (
                                     <subItem.icon
                                       className={cn(
-                                        "h-4 w-4 transition-colors",
+                                        "h-4 w-4",
                                         isSubActive
-                                          ? "text-blue-600 dark:text-blue-400"
-                                          : "text-slate-400 dark:text-slate-500"
+                                          ? "text-[#3B82F6]"
+                                          : "text-blue-200"
                                       )}
                                     />
                                   )}
@@ -186,16 +169,17 @@ export function UserSidebar() {
                 </Collapsible>
               );
             }
+
             return (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   asChild
                   tooltip={item.title}
                   className={cn(
-                    "w-full justify-start gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800",
+                    "w-full justify-start gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200",
                     isActive
-                      ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25"
-                      : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
+                      ? "bg-gradient-to-r from-[#3B82F6] to-[#2563EB] text-white shadow-lg shadow-blue-500/30"
+                      : "text-blue-100 hover:bg-[#3B82F6]/20 hover:text-white"
                   )}
                 >
                   <Link
@@ -206,9 +190,7 @@ export function UserSidebar() {
                       <item.icon
                         className={cn(
                           "h-5 w-5 transition-colors",
-                          isActive
-                            ? "text-white"
-                            : "text-slate-500 dark:text-slate-400"
+                          isActive ? "text-white" : "text-blue-200"
                         )}
                       />
                     )}
