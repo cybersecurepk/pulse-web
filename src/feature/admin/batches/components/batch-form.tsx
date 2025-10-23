@@ -1,7 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { Field } from "@/components/core/hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,17 +26,12 @@ const batchSchema = z.object({
     .string()
     .min(1, { message: "Batch code is required" })
     .min(3, { message: "Code must be at least 3 characters" }),
-  location: z
-    .string()
-    .min(1, { message: "Location is required" }),
-  startDate: z
-    .date({ message: "Start date is required" }),
-  endDate: z
-    .date({ message: "End date is required" }),
-  status: z
-    .enum(["Upcoming", "Ongoing", "Completed"], {
-      message: "Status is required",
-    }),
+  location: z.string().min(1, { message: "Location is required" }),
+  startDate: z.date({ message: "Start date is required" }),
+  endDate: z.date({ message: "End date is required" }),
+  status: z.enum(["Upcoming", "Ongoing", "Completed"], {
+    message: "Status is required",
+  }),
   instructors: z
     .array(z.string())
     .min(1, { message: "At least one instructor must be selected" }),
@@ -38,12 +39,8 @@ const batchSchema = z.object({
     .number()
     .min(1, { message: "Max learners must be at least 1" })
     .max(100, { message: "Max learners cannot exceed 100" }),
-  courseProgram: z
-    .string()
-    .min(1, { message: "Course/Program is required" }),
-  summaryNotes: z
-    .string()
-    .optional(),
+  courseProgram: z.string().min(1, { message: "Course/Program is required" }),
+  summaryNotes: z.string().optional(),
 });
 
 type BatchFormData = z.infer<typeof batchSchema>;
@@ -112,13 +109,13 @@ export function BatchForm() {
   const onSubmit = async (values: BatchFormData) => {
     try {
       console.log("Batch form submitted:", values);
-      
+
       // TODO: Replace with actual API call
       // await createBatch(values);
-      
+
       // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       router.push("/admin/batches");
     } catch (err: unknown) {
       console.error("Failed to create batch:", err);
@@ -138,7 +135,9 @@ export function BatchForm() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
-          <h1 className="text-3xl font-bold tracking-tight">Create New Batch</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Create New Batch
+          </h1>
         </div>
         <p className="text-muted-foreground">
           Create a new batch and configure its details
@@ -162,7 +161,7 @@ export function BatchForm() {
                   placeholder="Enter batch name"
                   required
                 />
-                
+
                 <Field.Text
                   name="batchCode"
                   label="Batch Code"
@@ -185,7 +184,7 @@ export function BatchForm() {
                     placeholder="Select start date"
                     required
                   />
-                  
+
                   <Field.DatePicker
                     name="endDate"
                     label="End Date"
@@ -219,13 +218,13 @@ export function BatchForm() {
                   required
                 />
 
-                <Field.Select
+                {/* <Field.Select
                   name="courseProgram"
                   label="Course/Program"
                   placeholder="Select course or program"
                   options={courseProgramOptions}
                   required
-                />
+                /> */}
 
                 <Field.Textarea
                   name="summaryNotes"

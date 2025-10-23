@@ -95,12 +95,12 @@ export function BatchesView() {
         <span className="text-muted-foreground">{getValue()}</span>
       ),
     }),
-    columnHelper.accessor("courseProgram", {
-      header: "Course/Program",
-      cell: ({ getValue }) => (
-        <span className="text-muted-foreground">{getValue()}</span>
-      ),
-    }),
+    // columnHelper.accessor("courseProgram", {
+    //   header: "Course/Program",
+    //   cell: ({ getValue }) => (
+    //     <span className="text-muted-foreground">{getValue()}</span>
+    //   ),
+    // }),
     columnHelper.display({
       id: "actions",
       header: "Actions",
