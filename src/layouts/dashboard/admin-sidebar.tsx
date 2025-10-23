@@ -48,7 +48,7 @@ const adminNavItems: NavItem[] = [
   },
   {
     title: "Applications",
-    url: "/admin/applications",
+    url: "/admin/application",
     icon: Users,
   },
   {
