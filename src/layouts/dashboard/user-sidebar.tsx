@@ -83,7 +83,7 @@ export function UserSidebar() {
   const pathname = usePathname();
 
   return (
-    <SidebarGroup className="bg-[#1E40AF] text-white h-screen flex flex-col overflow-hidden">
+    <SidebarGroup className="bg-[#6D28D9] text-white h-screen flex flex-col overflow-hidden">
       <SidebarGroupContent className="px-3 py-4 flex-1 overflow-visible">
         <SidebarMenu className="space-y-1">
           {userNavItems.map((item) => {
@@ -109,15 +109,15 @@ export function UserSidebar() {
                         className={cn(
                           "w-full justify-start gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200",
                           shouldHighlight
-                            ? "bg-gradient-to-r from-[#3B82F6] to-[#2563EB] text-white shadow-lg shadow-blue-500/30"
-                            : "text-blue-100 hover:bg-[#3B82F6]/20 hover:text-white"
+                            ? "bg-gradient-to-r from-[#A78BFA] to-[#6D28D9] text-white shadow-lg shadow-purple-500/30"
+                            : "text-purple-100 hover:bg-[#A78BFA]/20 hover:text-white"
                         )}
                       >
                         {item.icon && (
                           <item.icon
                             className={cn(
                               "h-5 w-5 transition-colors",
-                              shouldHighlight ? "text-white" : "text-blue-200"
+                              shouldHighlight ? "text-white" : "text-purple-200"
                             )}
                           />
                         )}
@@ -137,8 +137,8 @@ export function UserSidebar() {
                                 className={cn(
                                   "w-full justify-start gap-3 rounded-lg px-4 py-2.5 text-sm transition-all duration-200 ml-6",
                                   isSubActive
-                                    ? "bg-[#3B82F6]/25 text-white border-l-2 border-[#3B82F6] font-medium"
-                                    : "text-blue-100 hover:bg-[#3B82F6]/20 hover:text-white"
+                                    ? "bg-[#A78BFA]/25 text-white border-l-2 border-[#22C55E] font-medium"
+                                    : "text-purple-100 hover:bg-[#A78BFA]/20 hover:text-white"
                                 )}
                               >
                                 <Link
@@ -150,8 +150,8 @@ export function UserSidebar() {
                                       className={cn(
                                         "h-4 w-4",
                                         isSubActive
-                                          ? "text-[#3B82F6]"
-                                          : "text-blue-200"
+                                          ? "text-[#22C55E]"
+                                          : "text-purple-200"
                                       )}
                                     />
                                   )}
@@ -178,8 +178,8 @@ export function UserSidebar() {
                   className={cn(
                     "w-full justify-start gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200",
                     isActive
-                      ? "bg-gradient-to-r from-[#3B82F6] to-[#2563EB] text-white shadow-lg shadow-blue-500/30"
-                      : "text-blue-100 hover:bg-[#3B82F6]/20 hover:text-white"
+                      ? "bg-gradient-to-r from-[#A78BFA] to-[#6D28D9] text-white shadow-lg shadow-purple-500/30"
+                      : "text-purple-100 hover:bg-[#A78BFA]/20 hover:text-white"
                   )}
                 >
                   <Link
@@ -190,7 +190,7 @@ export function UserSidebar() {
                       <item.icon
                         className={cn(
                           "h-5 w-5 transition-colors",
-                          isActive ? "text-white" : "text-blue-200"
+                          isActive ? "text-white" : "text-purple-200"
                         )}
                       />
                     )}
