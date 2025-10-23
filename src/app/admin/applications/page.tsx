@@ -1,4 +1,4 @@
-import { ApplicationView } from "@/feature/admin/application/view";
+import { ApplicationView } from "@/feature/admin/applications/view";
 
 export const metadata = { title: `Applications` };
 
