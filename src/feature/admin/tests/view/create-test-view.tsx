@@ -1,5 +1,6 @@
 import React from "react";
+import { TestForm } from "../components/test-form";
 
 export function CreateTestView() {
-  return <div>Create Test View</div>;
+  return <TestForm />;
 }

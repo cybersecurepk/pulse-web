@@ -48,43 +48,53 @@ const adminNavItems: NavItem[] = [
   },
   {
     title: "Applications",
-    url: "/admin/application",
+    url: "/admin/applications",
     icon: Users,
   },
   {
     title: "Batches",
     url: "/admin/batches",
     icon: BookOpen,
-    items: [
-      {
-        title: "Create Batch",
-        url: "/admin/batches/create",
-      },
-      {
-        title: "Instructors",
-        url: "/admin/instructors",
-      },
-    ],
   },
   {
     title: "Tests",
     url: "/admin/tests",
     icon: FileText,
-    items: [
-      {
-        title: "Create Test",
-        url: "/admin/tests/create",
-      },
-      {
-        title: "Assign to Batch",
-        url: "/admin/tests/assign",
-      },
-      {
-        title: "Test Results",
-        url: "/admin/tests/results",
-      },
-    ],
   },
+  // {
+  //   title: "Batches",
+  //   url: "/admin/batches",
+  //   icon: BookOpen,
+  //   items: [
+  //     {
+  //       title: "Create Batch",
+  //       url: "/admin/batches/create",
+  //     },
+  //     {
+  //       title: "Instructors",
+  //       url: "/admin/instructors",
+  //     },
+  //   ],
+  // },
+  // {
+  //   title: "Tests",
+  //   url: "/admin/tests",
+  //   icon: FileText,
+  //   items: [
+  //     {
+  //       title: "Create Test",
+  //       url: "/admin/tests/create",
+  //     },
+  //     {
+  //       title: "Assign to Batch",
+  //       url: "/admin/tests/assign",
+  //     },
+  //     {
+  //       title: "Test Results",
+  //       url: "/admin/tests/results",
+  //     },
+  //   ],
+  // },
   {
     title: "Users",
     url: "/admin/users",

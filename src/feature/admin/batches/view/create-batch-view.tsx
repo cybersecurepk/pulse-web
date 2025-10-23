@@ -1,5 +1,6 @@
 import React from "react";
+import { BatchForm } from "../components/batch-form";
 
 export function CreateBatchView() {
-  return <div>Create Batch View</div>;
+  return <BatchForm />;
 }
