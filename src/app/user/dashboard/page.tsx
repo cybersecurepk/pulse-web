@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 export default function UserDashboard() {
   return (
     <div className="space-y-6 bg-[#F9FAFB] min-h-screen p-6 text-[#111827]">
@@ -99,3 +100,12 @@ export default function UserDashboard() {
     </div>
   );
 }
+=======
+import { UserDashboardView } from "@/feature/user/dashboard/view";
+
+export const metadata = { title: `Dashboard` };
+
+export default function Page() {
+  return <UserDashboardView />;
+}
+>>>>>>> origin/main
