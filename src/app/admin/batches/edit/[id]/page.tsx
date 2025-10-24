@@ -1,4 +1,4 @@
-import { EditBatchPage } from "@/feature/admin/batches/components/edit-batch";
+import { EditBatchPage } from "@/feature/admin/batches/view/edit-batch-view";
 
 export default async function EditBatchRoute({
   params,
