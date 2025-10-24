@@ -5,7 +5,7 @@ import { CustomBreadcrumbs } from "@/components/core/custom-breadcrumbs";
 import Table from "@/components/core/table/table";
 import { useTableState } from "@/hooks/use-table-state";
 import { createColumnHelper } from "@tanstack/react-table";
-import { Edit, Eye, Trash2 } from "lucide-react";
+import { CheckCircle, XCircle } from "lucide-react";
 import React from "react";
 import { dummyApplicants } from "../data/dummy-applicants";
 import { applicant } from "../types/applicant";
@@ -14,16 +14,14 @@ export function ApplicationView() {
   const tableStateHook = useTableState();
   const columnHelper = createColumnHelper<applicant>();
 
-  const handleEdit = (applicantId: string) => {
-    console.log("Edit applicant:", applicantId);
+  const handleApprove = (applicantId: string) => {
+    console.log("Approved applicant:", applicantId);
+    // You could update status in state or call an API here
   };
 
-  const handleDelete = (applicantId: string) => {
-    console.log("Delete applicant:", applicantId);
-  };
-
-  const handleView = (applicantId: string) => {
-    console.log("View applicant:", applicantId);
+  const handleReject = (applicantId: string) => {
+    console.log("Rejected applicant:", applicantId);
+    // Similarly update status or trigger API
   };
 
   const columns = [
@@ -63,7 +61,7 @@ export function ApplicationView() {
       header: "Status",
       cell: ({ getValue }) => {
         const status = getValue();
-        const statusColors = {
+        const statusColors: Record<string, string> = {
           Pending: "bg-yellow-100 text-yellow-800",
           Reviewed: "bg-blue-100 text-blue-800",
           Accepted: "bg-green-100 text-green-800",
@@ -71,7 +69,9 @@ export function ApplicationView() {
         };
         return (
           <span
-            className={`rounded-sm px-2 py-1 text-sm font-semibold ${statusColors[status]}`}
+            className={`rounded-sm px-2 py-1 text-sm font-semibold ${
+              statusColors[status] || "bg-gray-100 text-gray-800"
+            }`}
           >
             {status}
           </span>
@@ -88,29 +88,20 @@ export function ApplicationView() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleView(applicant.id)}
-              title="View applicant"
-              className="h-8 w-8 text-gray-600 hover:bg-gray-50 hover:text-gray-700"
+              onClick={() => handleApprove(applicant.id)}
+              title="Approve applicant"
+              className="h-8 w-8 text-green-600 hover:bg-green-50 hover:text-green-700"
             >
-              <Eye className="h-4 w-4" />
+              <CheckCircle className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleEdit(applicant.id)}
-              title="Edit applicant"
-              className="h-8 w-8 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => handleDelete(applicant.id)}
-              title="Delete applicant"
+              onClick={() => handleReject(applicant.id)}
+              title="Reject applicant"
               className="h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700"
             >
-              <Trash2 className="h-4 w-4" />
+              <XCircle className="h-4 w-4" />
             </Button>
           </div>
         );

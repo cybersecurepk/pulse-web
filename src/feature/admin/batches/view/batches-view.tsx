@@ -23,7 +23,7 @@ export function BatchesView() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleEdit = (batchId: string) => {
-    console.log("Edit batch:", batchId);
+    router.push(`/admin/batches/edit/${batchId}`);
   };
 
   const handleDeleteClick = (batch: Batch) => {

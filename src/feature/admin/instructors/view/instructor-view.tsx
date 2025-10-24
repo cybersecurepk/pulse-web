@@ -5,25 +5,23 @@ import { CustomBreadcrumbs } from "@/components/core/custom-breadcrumbs";
 import Table from "@/components/core/table/table";
 import { useTableState } from "@/hooks/use-table-state";
 import { createColumnHelper } from "@tanstack/react-table";
-import { Edit, Eye, Trash2 } from "lucide-react";
+import { PlusCircle, Trash2 } from "lucide-react";
 import React from "react";
 import { dummyInstructors } from "../data/dummy-instructors";
 import { instructor } from "../types/instructor";
+import { useRouter } from "next/navigation";
 
 export function InstructorsView() {
   const tableStateHook = useTableState();
   const columnHelper = createColumnHelper<instructor>();
+  const router = useRouter();
 
-  const handleEdit = (instructorId: string) => {
-    console.log("Edit instructor:", instructorId);
+  const handleAssignToBatch = (instructorId: string) => {
+    console.log("Assigning instructor to batch:", instructorId);
   };
 
   const handleDelete = (instructorId: string) => {
     console.log("Delete instructor:", instructorId);
-  };
-
-  const handleView = (instructorId: string) => {
-    console.log("View instructor:", instructorId);
   };
 
   const columns = [
@@ -90,20 +88,11 @@ export function InstructorsView() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleView(instructor.id)}
-              title="View instructor"
-              className="h-8 w-8 text-gray-600 hover:bg-gray-50 hover:text-gray-700"
+              onClick={() => handleAssignToBatch(instructor.id)}
+              title="Assign to Batch"
+              className="h-8 w-8 text-green-600 hover:bg-green-50 hover:text-green-700"
             >
-              <Eye className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => handleEdit(instructor.id)}
-              title="Edit instructor"
-              className="h-8 w-8 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-            >
-              <Edit className="h-4 w-4" />
+              <PlusCircle className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
