@@ -7,27 +7,37 @@ import { useTableState } from "@/hooks/use-table-state";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Edit, Eye, Trash2 } from "lucide-react";
 import React from "react";
-import { dummyApplicants } from "../data/dummy-applicants";
-import { applicant } from "../types/applicant";
+import { dummyInstructors } from "../data/dummy-instructors";
+import { instructor } from "../types/instructor";
 
-export function ApplicationView() {
+export function InstructorsView() {
   const tableStateHook = useTableState();
-  const columnHelper = createColumnHelper<applicant>();
+  const columnHelper = createColumnHelper<instructor>();
 
-  const handleEdit = (applicantId: string) => {
-    console.log("Edit applicant:", applicantId);
+  const handleEdit = (instructorId: string) => {
+    console.log("Edit instructor:", instructorId);
   };
 
-  const handleDelete = (applicantId: string) => {
-    console.log("Delete applicant:", applicantId);
+  const handleDelete = (instructorId: string) => {
+    console.log("Delete instructor:", instructorId);
   };
 
-  const handleView = (applicantId: string) => {
-    console.log("View applicant:", applicantId);
+  const handleView = (instructorId: string) => {
+    console.log("View instructor:", instructorId);
   };
 
   const columns = [
-    columnHelper.accessor("Name", {
+    columnHelper.accessor("profilePhoto", {
+      header: "",
+      cell: ({ getValue }) => (
+        <img
+          src={getValue()}
+          alt="Instructor"
+          className="h-10 w-10 rounded-full object-cover border"
+        />
+      ),
+    }),
+    columnHelper.accessor("name", {
       header: "Name",
       cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
     }),
@@ -51,30 +61,22 @@ export function ApplicationView() {
         <span className="text-muted-foreground">{getValue()}</span>
       ),
     }),
-    columnHelper.accessor("applicationDate", {
-      header: "Application Date",
+    columnHelper.accessor("bio", {
+      header: "Bio / Summary",
       cell: ({ getValue }) => (
-        <span className="text-muted-foreground">
-          {getValue().toLocaleDateString()}
+        <span className="text-muted-foreground line-clamp-2 max-w-[250px] text-sm">
+          {getValue()}
         </span>
       ),
     }),
-    columnHelper.accessor("status", {
-      header: "Status",
+    columnHelper.accessor("assignedBatches", {
+      header: "Assigned Batches",
       cell: ({ getValue }) => {
-        const status = getValue();
-        const statusColors = {
-          Pending: "bg-yellow-100 text-yellow-800",
-          Reviewed: "bg-blue-100 text-blue-800",
-          Accepted: "bg-green-100 text-green-800",
-          Rejected: "bg-red-100 text-red-800",
-        };
-        return (
-          <span
-            className={`rounded-sm px-2 py-1 text-sm font-semibold ${statusColors[status]}`}
-          >
-            {status}
-          </span>
+        const batches = getValue();
+        return batches.length > 0 ? (
+          <span className="text-sm font-medium">{batches.join(", ")}</span>
+        ) : (
+          <span className="text-muted-foreground italic">None</span>
         );
       },
     }),
@@ -82,14 +84,14 @@ export function ApplicationView() {
       id: "actions",
       header: "Actions",
       cell: ({ row }) => {
-        const applicant = row.original;
+        const instructor = row.original;
         return (
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleView(applicant.id)}
-              title="View applicant"
+              onClick={() => handleView(instructor.id)}
+              title="View instructor"
               className="h-8 w-8 text-gray-600 hover:bg-gray-50 hover:text-gray-700"
             >
               <Eye className="h-4 w-4" />
@@ -97,8 +99,8 @@ export function ApplicationView() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleEdit(applicant.id)}
-              title="Edit applicant"
+              onClick={() => handleEdit(instructor.id)}
+              title="Edit instructor"
               className="h-8 w-8 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
             >
               <Edit className="h-4 w-4" />
@@ -106,8 +108,8 @@ export function ApplicationView() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleDelete(applicant.id)}
-              title="Delete applicant"
+              onClick={() => handleDelete(instructor.id)}
+              title="Delete instructor"
               className="h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700"
             >
               <Trash2 className="h-4 w-4" />
@@ -121,20 +123,20 @@ export function ApplicationView() {
   return (
     <div>
       <CustomBreadcrumbs
-        heading="Applicants Management"
+        heading="Instructor Management"
         links={[
           { name: "Dashboard", href: "/admin/dashboard" },
-          { name: "Applicants Management" },
+          { name: "Instructor Management" },
         ]}
       />
       <div className="py-3">
         <Table
           columns={columns}
-          data={dummyApplicants}
-          totalCount={dummyApplicants.length}
+          data={dummyInstructors}
+          totalCount={dummyInstructors.length}
           loading={false}
           tableState={tableStateHook}
-          heading="Applicants Management"
+          heading="Instructor Management"
         />
       </div>
     </div>

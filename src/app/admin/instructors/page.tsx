@@ -1,4 +1,4 @@
-import { InstructorsView } from "@/feature/admin/batches/view";
+import { InstructorsView } from "@/feature/admin/instructors/view";
 
 export const metadata = { title: `Instructors` };
 

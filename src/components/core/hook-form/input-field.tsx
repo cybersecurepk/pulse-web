@@ -63,9 +63,10 @@ export function InputField({
                 {...field}
                 type={type}
                 className={cn(
-                  className,
+                  "focus:border-blue-500 focus:ring-1 focus:ring-blue-200 border-gray-300",
                   leadingIcon && "pl-10",
-                  trailingIcon && "pr-10"
+                  trailingIcon && "pr-10",
+                  className
                 )}
                 value={field.value ?? ""}
                 onChange={(e) => {

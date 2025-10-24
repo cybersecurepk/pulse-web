@@ -8,7 +8,7 @@ export interface Batch {
   status: "Upcoming" | "Ongoing" | "Completed";
   instructors: string[];
   maxLearners: number;
-  courseProgram: string;
+  // courseProgram: string;
   summaryNotes: string;
   testDates: Date[];
   attachments: string[];

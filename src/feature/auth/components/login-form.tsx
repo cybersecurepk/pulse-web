@@ -109,7 +109,7 @@ export function LoginForm({
             {/* Primary button */}
             <Button
               type="submit"
-              className="w-full py-3 text-lg font-semibold bg-[#6366f1] hover:bg-[#4f46e5] text-white rounded-md transition duration-150 ease-in-out"
+              className="w-full py-3 text-lg font-medium bg-[#6366f1] hover:bg-[#4f46e5] text-white rounded-md transition duration-150 ease-in-out"
             >
               Sign In
             </Button>

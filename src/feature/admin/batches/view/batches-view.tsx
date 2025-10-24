@@ -6,22 +6,49 @@ import Table from "@/components/core/table/table";
 import { useTableState } from "@/hooks/use-table-state";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Edit, Eye, Plus, Trash2 } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { dummyBatches } from "../data/dummy-batches";
 import { Batch } from "../types/batch";
+import { ConfirmationDialog } from "@/components/core/confirmation-dialog";
 
 export function BatchesView() {
   const router = useRouter();
   const tableStateHook = useTableState();
   const columnHelper = createColumnHelper<Batch>();
 
+  // 🔹 State for delete confirmation
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedBatch, setSelectedBatch] = useState<Batch | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const handleEdit = (batchId: string) => {
     console.log("Edit batch:", batchId);
   };
 
-  const handleDelete = (batchId: string) => {
-    console.log("Delete batch:", batchId);
+  const handleDeleteClick = (batch: Batch) => {
+    setSelectedBatch(batch);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedBatch) return;
+
+    try {
+      setIsDeleting(true);
+      console.log("Deleting batch:", selectedBatch.id);
+
+      // TODO: Replace this with API call (e.g., await deleteBatch(selectedBatch.id))
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      console.log(`Batch "${selectedBatch.batchName}" deleted successfully`);
+    } catch (error) {
+      console.error("Error deleting batch:", error);
+    } finally {
+      setIsDeleting(false);
+      setDeleteDialogOpen(false);
+      setSelectedBatch(null);
+    }
   };
 
   const handleView = (batchId: string) => {
@@ -95,12 +122,6 @@ export function BatchesView() {
         <span className="text-muted-foreground">{getValue()}</span>
       ),
     }),
-    columnHelper.accessor("courseProgram", {
-      header: "Course/Program",
-      cell: ({ getValue }) => (
-        <span className="text-muted-foreground">{getValue()}</span>
-      ),
-    }),
     columnHelper.display({
       id: "actions",
       header: "Actions",
@@ -129,7 +150,7 @@ export function BatchesView() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleDelete(batch.id)}
+              onClick={() => handleDeleteClick(batch)}
               title="Delete batch"
               className="h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700"
             >
@@ -170,6 +191,19 @@ export function BatchesView() {
           heading="Batch Management"
         />
       </div>
+
+      {/* 🔹 Confirmation Dialog */}
+      <ConfirmationDialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleConfirmDelete}
+        loading={isDeleting}
+        message={
+          selectedBatch
+            ? `Are you sure you want to delete the batch "${selectedBatch.batchName}"?`
+            : undefined
+        }
+      />
     </div>
   );
 }
