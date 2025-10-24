@@ -2,7 +2,7 @@ export interface Test {
   id: string;
   testName: string;
   testCode: string;
-  testType: string;
+  // testType: string;
   description: string;
   totalQuestions: number;
   duration: number;

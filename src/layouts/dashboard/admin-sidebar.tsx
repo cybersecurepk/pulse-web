@@ -25,6 +25,7 @@ import {
   BarChart3,
   Settings,
   User,
+  UserRound,
   LogOut,
   type LucideIcon,
 } from "lucide-react";
@@ -60,6 +61,11 @@ const adminNavItems: NavItem[] = [
     title: "Tests",
     url: "/admin/tests",
     icon: FileText,
+  },
+  {
+    title: "Instructors",
+    url: "/admin/instructors",
+    icon: UserRound,
   },
   // {
   //   title: "Batches",

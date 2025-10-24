@@ -41,12 +41,12 @@ export function TestsView() {
         </span>
       ),
     }),
-    columnHelper.accessor("testType", {
-      header: "Type",
-      cell: ({ getValue }) => (
-        <span className="text-muted-foreground">{getValue()}</span>
-      ),
-    }),
+    // columnHelper.accessor("testType", {
+    //   header: "Type",
+    //   cell: ({ getValue }) => (
+    //     <span className="text-muted-foreground">{getValue()}</span>
+    //   ),
+    // }),
     columnHelper.accessor("totalQuestions", {
       header: "Questions",
       cell: ({ getValue }) => (
