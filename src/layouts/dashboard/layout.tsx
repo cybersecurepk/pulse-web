@@ -33,7 +33,7 @@ export function DashboardLayout({
         {/* Header */}
         <header className="bg-white dark:bg-slate-900 sticky top-0 flex h-16 shrink-0 items-center justify-between border-b border-slate-200 dark:border-slate-700 px-6 z-10 shadow-sm">
           <div className="flex items-center gap-4">
-            <SidebarTrigger className="-ml-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md p-1 transition-colors" />
+            <SidebarTrigger className="-ml-1 bg-blue-900/10 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg p-2 transition-all duration-200 hover:scale-105 active:scale-95 border border-transparent hover:border-blue-200 dark:hover:border-blue-800 text-slate-600 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400" />
           </div>
 
           <div className="flex items-center gap-4">
