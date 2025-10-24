@@ -1,6 +1,6 @@
 import React from "react";
-import { EditBatchForm } from "../components/edit-batch";
+import { BatchForm } from "../components/batch-form";
 
 export function EditBatchPage({ params }: { params: { id: string } }) {
-  return <EditBatchForm params={params} />;
+  return <BatchForm batchId={params.id} />;
 }
