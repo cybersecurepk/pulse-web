@@ -1,7 +1,10 @@
 "use client";
 
 import React from "react";
-import { ProfileForm, ProfileFormData } from "@/components/core/profile-form";
+import {
+  ProfileFormComponent,
+  ProfileFormData,
+} from "@/components/core/profile-section/profile-form";
 
 export function UserProfileView() {
   const defaultProfileData: ProfileFormData = {
@@ -15,7 +18,6 @@ export function UserProfileView() {
     street: "123 Main St",
     zip: "94105",
     phoneNumber: "(+1) 555-0123",
-    addressVisibility: "private",
     primaryEmail: "john.doe@email.com",
     secondaryEmail: "john.alternate@email.com",
   };
@@ -27,21 +29,13 @@ export function UserProfileView() {
     await new Promise((resolve) => setTimeout(resolve, 1000));
   };
 
-  const handleDelete = async () => {
-    // Custom delete logic for user profile
-    console.log("Deleting user profile");
-    // Add your API call here
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-  };
-
   return (
-    <ProfileForm
+    <ProfileFormComponent
+      initialData={defaultProfileData}
+      onSave={handleSave}
       title="My Profile"
       description="Manage your personal details and avatar."
-      storageKey="user-profile-data"
-      defaultData={defaultProfileData}
-      onSave={handleSave}
-      onDelete={handleDelete}
+      backUrl="/user/profile"
     />
   );
 }

@@ -1,7 +1,7 @@
-import { MyProfileView } from "@/feature/admin/account/view";
+import { EditProfileView } from "@/feature/admin/account/view";
 import { Suspense } from "react";
 
-export const metadata = { title: `My Profile` };
+export const metadata = { title: `Edit Profile` };
 
 export default async function Page({
   searchParams,
@@ -9,9 +9,11 @@ export default async function Page({
   searchParams: Promise<{ id?: string }>;
 }) {
   const params = await searchParams;
+  const userId = params.id || "1";
+
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <MyProfileView userId={params.id || "1"} />
+      <EditProfileView userId={userId} />
     </Suspense>
   );
 }
