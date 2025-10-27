@@ -10,6 +10,8 @@ export const dummyBatches: Batch[] = [
     endDate: new Date("2024-05-31"),
     status: "Ongoing",
     instructors: ["John Smith", "Sarah Johnson", "Mike Chen"],
+    learners: ["user-001", "user-002", "user-003"],
+    tests: ["test-001", "test-002"],
     maxLearners: 25,
     // courseProgram: "Full Stack Development",
     summaryNotes:
@@ -34,6 +36,8 @@ export const dummyBatches: Batch[] = [
     endDate: new Date("2024-06-30"),
     status: "Upcoming",
     instructors: ["Dr. Emily Watson", "Alex Rodriguez"],
+    learners: ["user-004", "user-005"],
+    tests: ["test-003", "test-004"],
     maxLearners: 20,
     // courseProgram: "Data Science",
     summaryNotes:
@@ -58,6 +62,8 @@ export const dummyBatches: Batch[] = [
     endDate: new Date("2024-01-31"),
     status: "Completed",
     instructors: ["Lisa Park", "David Kim"],
+    learners: ["user-006", "user-007"],
+    tests: ["test-005"],
     maxLearners: 15,
     // courseProgram: "UI/UX Design",
     summaryNotes:
@@ -78,6 +84,8 @@ export const dummyBatches: Batch[] = [
     endDate: new Date("2024-07-31"),
     status: "Upcoming",
     instructors: ["Robert Wilson", "Maria Garcia", "James Brown"],
+    learners: ["user-008"],
+    tests: ["test-006", "test-007"],
     maxLearners: 30,
     // courseProgram: "Cybersecurity",
     summaryNotes:
@@ -102,6 +110,8 @@ export const dummyBatches: Batch[] = [
     endDate: new Date("2024-04-15"),
     status: "Ongoing",
     instructors: ["Jennifer Lee", "Tom Anderson"],
+    learners: ["user-001", "user-004", "user-006"],
+    tests: ["test-008"],
     maxLearners: 18,
     // courseProgram: "Mobile Development",
     summaryNotes:

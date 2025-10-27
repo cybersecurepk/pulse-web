@@ -53,10 +53,6 @@ export function ProfileViewComponent({
       </div>
 
       <Card>
-        <CardHeader className="border-b">
-          {/* Empty header with border for visual separation */}
-        </CardHeader>
-
         <CardContent className="space-y-8">
           {/* Avatar */}
           <div className="flex flex-col items-center">

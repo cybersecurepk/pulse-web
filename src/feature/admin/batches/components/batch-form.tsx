@@ -18,6 +18,8 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { dummyBatches } from "../data/dummy-batches";
+import { dummyUsers } from "../data/dummy-users";
+import { dummyTests } from "../data/dummy-test";
 
 const batchSchema = z.object({
   batchName: z
@@ -33,6 +35,10 @@ const batchSchema = z.object({
   instructors: z
     .array(z.string())
     .min(1, { message: "At least one instructor is required" }),
+  learners: z
+    .array(z.string())
+    .min(0, { message: "Learners selection is optional" }),
+  tests: z.array(z.string()).min(0, { message: "Tests selection is optional" }),
   maxLearners: z.number().min(1).max(100),
   courseProgram: z.string().optional(),
   summaryNotes: z.string().optional(),
@@ -60,6 +66,17 @@ const instructorOptions = [
   { value: "mike-chen", label: "Mike Chen" },
 ];
 
+// Create options for users and tests
+const userOptions = dummyUsers.map((user) => ({
+  value: user.id,
+  label: `${user.name} (${user.email})`,
+}));
+
+const testOptions = dummyTests.map((test) => ({
+  value: test.id,
+  label: `${test.title} (${test.subject})`,
+}));
+
 export function BatchForm({ batchId }: { batchId?: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState(!!batchId);
@@ -74,6 +91,8 @@ export function BatchForm({ batchId }: { batchId?: string }) {
       endDate: undefined,
       status: "Upcoming",
       instructors: [],
+      learners: [],
+      tests: [],
       maxLearners: 25,
       summaryNotes: "",
     },
@@ -100,6 +119,8 @@ export function BatchForm({ batchId }: { batchId?: string }) {
           endDate: new Date(batch.endDate),
           status: batch.status,
           instructors: batch.instructors,
+          learners: batch.learners || [],
+          tests: batch.tests || [],
           maxLearners: batch.maxLearners,
           summaryNotes: batch.summaryNotes,
         });
@@ -127,6 +148,13 @@ export function BatchForm({ batchId }: { batchId?: string }) {
   }
 
   const isEditMode = !!batchId;
+
+  // Add this function to handle navigation to details page
+  const handleViewDetails = () => {
+    if (batchId) {
+      router.push(`/admin/batches/view/${batchId}`);
+    }
+  };
 
   return (
     <div className="container mx-auto p-6 max-w-2xl">
@@ -192,6 +220,20 @@ export function BatchForm({ batchId }: { batchId?: string }) {
                   multiple
                   required
                 />
+                <Field.Select
+                  name="learners"
+                  label="Learner(s)"
+                  options={userOptions}
+                  multiple
+                  required
+                />
+                <Field.Select
+                  name="tests"
+                  label="Test(s)"
+                  options={testOptions}
+                  multiple
+                  required
+                />
                 <Field.Text
                   name="maxLearners"
                   label="Max Learners"
@@ -206,6 +248,16 @@ export function BatchForm({ batchId }: { batchId?: string }) {
               </div>
 
               <div className="flex gap-4">
+                {isEditMode && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleViewDetails}
+                    className="flex-1"
+                  >
+                    View Details
+                  </Button>
+                )}
                 <Button type="submit" className="flex-1">
                   {isEditMode ? "Save Changes" : "Create Batch"}
                 </Button>

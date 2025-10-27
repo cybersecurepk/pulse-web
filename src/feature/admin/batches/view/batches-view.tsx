@@ -5,12 +5,14 @@ import { CustomBreadcrumbs } from "@/components/core/custom-breadcrumbs";
 import Table from "@/components/core/table/table";
 import { useTableState } from "@/hooks/use-table-state";
 import { createColumnHelper } from "@tanstack/react-table";
-import { Edit, Eye, Plus, Trash2 } from "lucide-react";
+import { Edit, Eye, Plus, Trash2, FileText } from "lucide-react";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { dummyBatches } from "../data/dummy-batches";
 import { Batch } from "../types/batch";
 import { ConfirmationDialog } from "@/components/core/confirmation-dialog";
+import { dummyUsers } from "../data/dummy-users";
+import { dummyTests } from "../data/dummy-test";
 
 export function BatchesView() {
   const router = useRouter();
@@ -21,6 +23,17 @@ export function BatchesView() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedBatch, setSelectedBatch] = useState<Batch | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Create maps for quick lookup of user and test names
+  const userMap = dummyUsers.reduce((acc, user) => {
+    acc[user.id] = user.name;
+    return acc;
+  }, {} as Record<string, string>);
+
+  const testMap = dummyTests.reduce((acc, test) => {
+    acc[test.id] = test.title;
+    return acc;
+  }, {} as Record<string, string>);
 
   const handleEdit = (batchId: string) => {
     router.push(`/admin/batches/edit/${batchId}`);
@@ -52,7 +65,7 @@ export function BatchesView() {
   };
 
   const handleView = (batchId: string) => {
-    console.log("View batch:", batchId);
+    router.push(`/admin/batches/view/${batchId}`);
   };
 
   const columns = [
@@ -116,6 +129,7 @@ export function BatchesView() {
         </span>
       ),
     }),
+
     columnHelper.accessor("maxLearners", {
       header: "Max Learners",
       cell: ({ getValue }) => (
@@ -134,7 +148,7 @@ export function BatchesView() {
               size="icon"
               onClick={() => handleView(batch.id)}
               title="View batch"
-              className="h-8 w-8 text-gray-600 hover:bg-gray-50 hover:text-gray-700"
+              className="h-8 w-8 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
             >
               <Eye className="h-4 w-4" />
             </Button>
