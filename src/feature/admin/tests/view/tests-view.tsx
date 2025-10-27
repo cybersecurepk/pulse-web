@@ -17,7 +17,7 @@ export function TestsView() {
   const columnHelper = createColumnHelper<Test>();
 
   const handleEdit = (testId: string) => {
-    console.log("Edit test:", testId);
+    router.push(`/admin/tests/edit/${testId}`);
   };
 
   const handleDelete = (testId: string) => {

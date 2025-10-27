@@ -5,7 +5,7 @@ import { CustomBreadcrumbs } from "@/components/core/custom-breadcrumbs";
 import Table from "@/components/core/table/table";
 import { useTableState } from "@/hooks/use-table-state";
 import { createColumnHelper } from "@tanstack/react-table";
-import { PlusCircle, Trash2 } from "lucide-react";
+import {  Edit, Trash2 } from "lucide-react";
 import React from "react";
 import { dummyInstructors } from "../data/dummy-instructors";
 import { instructor } from "../types/instructor";
@@ -16,7 +16,7 @@ export function InstructorsView() {
   const columnHelper = createColumnHelper<instructor>();
   const router = useRouter();
 
-  const handleAssignToBatch = (instructorId: string) => {
+  const handleEdit = (instructorId: string) => {
     console.log("Assigning instructor to batch:", instructorId);
   };
 
@@ -88,11 +88,11 @@ export function InstructorsView() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleAssignToBatch(instructor.id)}
-              title="Assign to Batch"
-              className="h-8 w-8 text-green-600 hover:bg-green-50 hover:text-green-700"
+              onClick={() => handleEdit(instructor.id)}
+              title="Edit instructor"
+              className="h-8 w-8 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
             >
-              <PlusCircle className="h-4 w-4" />
+              <Edit className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
