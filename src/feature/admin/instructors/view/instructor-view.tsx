@@ -5,7 +5,7 @@ import { CustomBreadcrumbs } from "@/components/core/custom-breadcrumbs";
 import Table from "@/components/core/table/table";
 import { useTableState } from "@/hooks/use-table-state";
 import { createColumnHelper } from "@tanstack/react-table";
-import {  Edit, Trash2 } from "lucide-react";
+import { Edit, Plus, Trash2 } from "lucide-react";
 import React from "react";
 import { dummyInstructors } from "../data/dummy-instructors";
 import { instructor } from "../types/instructor";
@@ -17,7 +17,7 @@ export function InstructorsView() {
   const router = useRouter();
 
   const handleEdit = (instructorId: string) => {
-    console.log("Assigning instructor to batch:", instructorId);
+    router.push(`/admin/instructors/edit/${instructorId}`);
   };
 
   const handleDelete = (instructorId: string) => {
@@ -126,8 +126,17 @@ export function InstructorsView() {
           loading={false}
           tableState={tableStateHook}
           heading="Instructor Management"
+          actions={[
+            {
+              label: "Add New Instructor",
+              onClick: () => router.push("/admin/instructors/create"),
+              variant: "primary",
+              icon: <Plus className="h-4 w-4" />,
+            },
+          ]}
         />
       </div>
+
     </div>
   );
 }
