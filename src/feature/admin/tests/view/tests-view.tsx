@@ -31,7 +31,7 @@ export function TestsView() {
   };
 
   const handleView = (testId: string) => {
-    console.log("View test:", testId);
+    router.push(`/admin/tests/view/${testId}`);
   };
 
   const handleConfirmDelete = async () => {

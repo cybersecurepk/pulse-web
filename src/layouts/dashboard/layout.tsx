@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "./app-sidebar";
 import { Bell, Settings, LogOut, User, ChevronDown } from "lucide-react";
+import Link from "next/link";
 
 export type DashboardLayoutProps = {
   children: React.ReactNode;
@@ -91,17 +92,21 @@ export function DashboardLayout({
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-slate-200 dark:bg-slate-700" />
-                <DropdownMenuItem className="px-2 py-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md focus:bg-slate-100 dark:focus:bg-slate-700">
-                  <User className="h-4 w-4 mr-3 text-slate-600 dark:text-slate-400" />
-                  <span className="text-slate-900 dark:text-slate-100">
-                    Profile
-                  </span>
+                <DropdownMenuItem className="px-2 py-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md focus:bg-slate-100 dark:focus:bg-slate-700" asChild>
+                  <Link href="/admin/account/profile">
+                    <User className="h-4 w-4 mr-3 text-slate-600 dark:text-slate-400" />
+                    <span className="text-slate-900 dark:text-slate-100">
+                      Profile
+                    </span>
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="px-2 py-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md focus:bg-slate-100 dark:focus:bg-slate-700">
-                  <Settings className="h-4 w-4 mr-3 text-slate-600 dark:text-slate-400" />
-                  <span className="text-slate-900 dark:text-slate-100">
-                    Settings
-                  </span>
+                <DropdownMenuItem className="px-2 py-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md focus:bg-slate-100 dark:focus:bg-slate-700" asChild>
+                  <Link href="/admin/account/password">
+                    <Settings className="h-4 w-4 mr-3 text-slate-600 dark:text-slate-400" />
+                    <span className="text-slate-900 dark:text-slate-100">
+                      Change Password
+                    </span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-slate-200 dark:bg-slate-700" />
                 <DropdownMenuItem className="px-2 py-2 cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 rounded-md focus:bg-red-50 dark:focus:bg-red-900/20">
