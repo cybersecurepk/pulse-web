@@ -179,7 +179,7 @@ export function ProfileFormComponent({
         <div className="flex items-center gap-4 mb-4">
           {backUrl && (
             <Link href={backUrl}>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </Link>

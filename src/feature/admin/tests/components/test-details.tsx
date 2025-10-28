@@ -65,7 +65,7 @@ export function TestDetails({ params }: { params: { id: string } }) {
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
           <Link href="/admin/tests">
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer">
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
