@@ -20,13 +20,15 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { TestBasicInfoForm } from "./test-basic-info-form";
 import { QuestionCreationForm } from "./question-creation-form";
 import { QuestionsListView } from "./questions-list-view";
 import { TestPayload } from "../types/test";
+import { dummyTests } from "../data/dummy-tests";
+import { dummyTestDetails } from "../data/dummy-test-details";
 
 const testSchema = z.object({
   title: z
@@ -75,11 +77,17 @@ const testSchema = z.object({
 
 type TestFormData = z.infer<typeof testSchema>;
 
-export function TestForm() {
+interface TestFormProps {
+  testId?: string; // For edit mode
+}
+
+export function TestForm({ testId }: TestFormProps) {
   const router = useRouter();
   const [editingQuestionIndex, setEditingQuestionIndex] = useState<
     number | null
   >(null);
+  const [loading, setLoading] = useState(!!testId); // Loading state for edit mode
+  const [isEditMode] = useState(!!testId); // Determine if we're in edit mode
 
   const form = useForm<TestFormData>({
     resolver: zodResolver(testSchema),
@@ -104,6 +112,61 @@ export function TestForm() {
       },
     },
   });
+
+  // Load test data if in edit mode
+  useEffect(() => {
+    if (!testId) return;
+
+    const loadTestData = async () => {
+      try {
+        // Simulate API call delay
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Find the test in dummy data (replace with actual API call)
+        const testDetail = dummyTestDetails.find(t => t.id === testId);
+        if (!testDetail) throw new Error("Test not found");
+        
+        // Transform test data to form data
+        form.reset({
+          title: testDetail.title,
+          testCode: testDetail.testCode,
+          type: testDetail.type,
+          description: testDetail.description,
+          isActive: testDetail.isActive,
+          duration: testDetail.duration,
+          passCriteria: 70, // Default value, would come from API
+          questions: testDetail.questions,
+          currentQuestion: {
+            text: "",
+            points: 5,
+            options: [
+              { text: "", isCorrect: false },
+              { text: "", isCorrect: false },
+              { text: "", isCorrect: false },
+              { text: "", isCorrect: false },
+            ],
+          },
+        });
+      } catch (err) {
+        console.error("Failed to load test:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTestData();
+  }, [testId, form]);
+
+  // Show loading state when in edit mode
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6 max-w-7xl">
+        <div className="flex justify-center items-center h-64">
+          <p>Loading test details...</p>
+        </div>
+      </div>
+    );
+  }
 
   const questions = form.watch("questions");
 
@@ -176,16 +239,23 @@ export function TestForm() {
   };
 
   const handleEditQuestion = (questionNumber: number) => {
-    const questionToEdit = questions.find(
+    // Find the index of the question in the array
+    const questionIndex = questions.findIndex(
       (q) => q.questionNo === questionNumber
     );
-    if (questionToEdit) {
+    if (questionIndex !== -1) {
+      const questionToEdit = questions[questionIndex];
       form.setValue("currentQuestion", questionToEdit);
-      setEditingQuestionIndex(questionNumber - 1);
+      setEditingQuestionIndex(questionIndex);
     }
   };
 
   const handleDeleteQuestion = (questionNumber: number) => {
+    // Find the index of the question to delete
+    const questionIndex = questions.findIndex(
+      (q) => q.questionNo === questionNumber
+    );
+    
     const updatedQuestions = questions
       .filter((q) => q.questionNo !== questionNumber)
       .map((q, index) => ({
@@ -196,7 +266,7 @@ export function TestForm() {
     form.setValue("questions", updatedQuestions);
 
     // If we're editing the deleted question, cancel edit mode
-    if (editingQuestionIndex === questionNumber - 1) {
+    if (editingQuestionIndex === questionIndex) {
       setEditingQuestionIndex(null);
       form.setValue("currentQuestion", {
         text: "",
@@ -244,20 +314,24 @@ export function TestForm() {
         })),
       };
 
-      console.log("Test form submitted:", payload);
+      console.log(`${isEditMode ? "Updating" : "Creating"} test:`, payload);
       
       // TODO: Replace with actual API call
-      // await createTest(payload);
+      // if (isEditMode) {
+      //   await updateTest(testId!, payload);
+      // } else {
+      //   await createTest(payload);
+      // }
       
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       router.push("/admin/tests");
     } catch (err: unknown) {
-      console.error("Failed to create test:", err);
+      console.error(`Failed to ${isEditMode ? "update" : "create"} test:`, err);
       form.setError("root", {
         type: "manual",
-        message: "Failed to create test. Please try again.",
+        message: `Failed to ${isEditMode ? "update" : "create"} test. Please try again.`,
       });
     }
   };
@@ -269,14 +343,18 @@ export function TestForm() {
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
           <Link href="/admin/tests">
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer">
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
-          <h1 className="text-3xl font-bold tracking-tight">Create New Test</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {isEditMode ? "Edit Test" : "Create New Test"}
+          </h1>
         </div>
         <p className="text-muted-foreground">
-          Create a new test by filling in the details below and adding questions
+          {isEditMode
+            ? "Update test details and questions below"
+            : "Create a new test by filling in the details below and adding questions"}
         </p>
       </div>
 
@@ -341,12 +419,12 @@ export function TestForm() {
                     {isLoading ? (
                       <div className="flex items-center justify-center">
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Creating...
+                        {isEditMode ? "Updating..." : "Creating..."}
                       </div>
                     ) : (
                       <div className="flex items-center justify-center">
                         <Save className="h-4 w-4 mr-2" />
-                        Save Test
+                        {isEditMode ? "Update Test" : "Save Test"}
                       </div>
                     )}
                   </Button>

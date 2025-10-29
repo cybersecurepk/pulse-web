@@ -6,7 +6,8 @@ import Table from "@/components/core/table/table";
 import { useTableState } from "@/hooks/use-table-state";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Edit, Eye, Plus, Trash2 } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
+import { ConfirmationDialog } from "@/components/core/confirmation-dialog";
 import { useRouter } from "next/navigation";
 import { dummyTests } from "../data/dummy-tests";
 import { Test } from "../types/test";
@@ -16,16 +17,43 @@ export function TestsView() {
   const tableStateHook = useTableState();
   const columnHelper = createColumnHelper<Test>();
 
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedTest, setSelectedTest] = useState<Test | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const handleEdit = (testId: string) => {
-    console.log("Edit test:", testId);
+    router.push(`/admin/tests/edit/${testId}`);
   };
 
-  const handleDelete = (testId: string) => {
-    console.log("Delete test:", testId);
+  const handleDelete = (test: Test) => {
+    setSelectedTest(test);
+    setDeleteDialogOpen(true);
   };
 
   const handleView = (testId: string) => {
-    console.log("View test:", testId);
+    router.push(`/admin/tests/view/${testId}`);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedTest) return;
+
+    try {
+      setIsDeleting(true);
+      console.log("Deleting test:", selectedTest.id);
+
+      // TODO: Replace this with API call (e.g., await deleteTest(selectedTest.id))
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      console.log(
+        `Test "${selectedTest.testName}" deleted successfully`
+      );
+    } catch (error) {
+      console.error("Error deleting test:", error);
+    } finally {
+      setIsDeleting(false);
+      setDeleteDialogOpen(false);
+      setSelectedTest(null);
+    }
   };
 
   const columns = [
@@ -110,7 +138,7 @@ export function TestsView() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleDelete(test.id)}
+              onClick={() => handleDelete(test)}
               title="Delete test"
               className="h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700"
             >
@@ -152,6 +180,18 @@ export function TestsView() {
           heading="Test Management"
         />
       </div>
+      {/* 🔹 Confirmation Dialog */}
+      <ConfirmationDialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleConfirmDelete}
+        loading={isDeleting}
+        message={
+          selectedTest
+            ? `Are you sure you want to delete the test "${selectedTest.testName}"?`
+            : undefined
+        }
+      />
     </div>
   );
 }

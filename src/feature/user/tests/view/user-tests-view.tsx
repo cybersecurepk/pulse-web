@@ -1,5 +1,5 @@
-import React from "react";
+import { ActiveTestsView } from "./active-tests-view";
 
 export function UserTestsView() {
-  return <div>My Tests View</div>;
+  return <ActiveTestsView />;
 }

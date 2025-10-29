@@ -99,6 +99,7 @@ export function QuestionsListView({
                 onClick={() => onEditQuestion(question.questionNo)}
                 className="h-6 w-6 p-0 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                 title="Edit question"
+                type="button"
               >
                 <Edit className="h-3 w-3" />
               </Button>
@@ -108,6 +109,7 @@ export function QuestionsListView({
                 onClick={() => onDeleteQuestion(question.questionNo)}
                 className="h-6 w-6 p-0 hover:bg-red-50 hover:text-red-600 transition-colors"
                 title="Delete question"
+                type="button"
               >
                 <Trash2 className="h-3 w-3" />
               </Button>
