@@ -11,37 +11,29 @@ import {
 import { Form } from "@/components/ui/form";
 import { Field } from "@/components/core/hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { dummyBatches } from "../data/dummy-batches";
-import { dummyUsers } from "../data/dummy-users";
-import { dummyTests } from "../data/dummy-test";
+import {
+  useGetBatchByIdQuery,
+  useSaveBatchMutation,
+  useUpdateBatchMutation,
+} from "@/service/rtk-query/batches/batch-api";
+import { BatchPayload } from "@/service/rtk-query/batches/batch-type";
 
 const batchSchema = z.object({
-  batchName: z
-    .string()
-    .min(3, { message: "Batch name must be at least 3 characters" }),
-  batchCode: z
-    .string()
-    .min(3, { message: "Batch code must be at least 3 characters" }),
+  name: z.string().min(3, { message: "Batch name must be at least 3 characters" }),
+  batchCode: z.string().min(3, { message: "Batch code must be at least 3 characters" }),
+  description: z.string().optional(),
   location: z.string().min(1, { message: "Location is required" }),
   startDate: z.date({ message: "Start date is required" }),
   endDate: z.date({ message: "End date is required" }),
-  status: z.enum(["Upcoming", "Ongoing", "Completed"]),
-  instructors: z
-    .array(z.string())
-    .min(1, { message: "At least one instructor is required" }),
-  learners: z
-    .array(z.string())
-    .min(0, { message: "Learners selection is optional" }),
-  tests: z.array(z.string()).min(0, { message: "Tests selection is optional" }),
-  maxLearners: z.number().min(1).max(100),
-  courseProgram: z.string().optional(),
-  summaryNotes: z.string().optional(),
+  status: z.string().min(1, { message: "Status is required" }),
+  isActive: z.boolean(),
+  maxCapacity: z.number().min(1, { message: "Max capacity must be at least 1" }).max(1000),
 });
 
 type BatchFormData = z.infer<typeof batchSchema>;
@@ -55,106 +47,97 @@ const locationOptions = [
 ];
 
 const statusOptions = [
-  { value: "Upcoming", label: "Upcoming" },
-  { value: "Ongoing", label: "Ongoing" },
-  { value: "Completed", label: "Completed" },
+  { value: "pending", label: "Pending" },
+  { value: "ongoing", label: "Ongoing" },
+  { value: "completed", label: "Completed" },
+  { value: "cancelled", label: "Cancelled" },
 ];
-
-const instructorOptions = [
-  { value: "john-smith", label: "John Smith" },
-  { value: "sarah-johnson", label: "Sarah Johnson" },
-  { value: "mike-chen", label: "Mike Chen" },
-];
-
-// Create options for users and tests
-const userOptions = dummyUsers.map((user) => ({
-  value: user.id,
-  label: `${user.name} (${user.email})`,
-}));
-
-const testOptions = dummyTests.map((test) => ({
-  value: test.id,
-  label: `${test.title} (${test.subject})`,
-}));
 
 export function BatchForm({ batchId }: { batchId?: string }) {
   const router = useRouter();
-  const [loading, setLoading] = useState(!!batchId);
+  const isEditMode = !!batchId;
+
+  const { data: batchData, isLoading: isLoadingBatch } = useGetBatchByIdQuery(batchId!, {
+    skip: !batchId,
+  });
+  const [saveBatch, { isLoading: isSaving }] = useSaveBatchMutation();
+  const [updateBatch, { isLoading: isUpdating }] = useUpdateBatchMutation();
 
   const form = useForm<BatchFormData>({
     resolver: zodResolver(batchSchema),
     defaultValues: {
-      batchName: "",
+      name: "",
       batchCode: "",
+      description: "",
       location: "",
-      startDate: undefined,
-      endDate: undefined,
-      status: "Upcoming",
-      instructors: [],
-      learners: [],
-      tests: [],
-      maxLearners: 25,
-      summaryNotes: "",
+      startDate: new Date(),
+      endDate: new Date(),
+      status: "pending",
+      isActive: true,
+      maxCapacity: 30,
     },
   });
 
-  // ✅ Load batch data into form if we're editing
   useEffect(() => {
-    if (!batchId) return;
+    if (!batchId || !batchData) return;
 
-    const fetchBatch = async () => {
-      try {
-        // Simulate loading delay
-        await new Promise((resolve) => setTimeout(resolve, 300));
-
-        // Pull from dummy data (replace this with API later)
-        const batch = dummyBatches.find((b) => b.id === batchId);
-        if (!batch) throw new Error("Batch not found");
-
-        form.reset({
-          batchName: batch.batchName,
-          batchCode: batch.batchCode,
-          location: batch.location,
-          startDate: new Date(batch.startDate),
-          endDate: new Date(batch.endDate),
-          status: batch.status,
-          instructors: batch.instructors,
-          learners: batch.learners || [],
-          tests: batch.tests || [],
-          maxLearners: batch.maxLearners,
-          summaryNotes: batch.summaryNotes,
-        });
-      } catch (error) {
-        console.error("Error loading batch:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBatch();
-  }, [batchId, form]);
+    try {
+      form.reset({
+        name: batchData.name,
+        batchCode: batchData.batchCode,
+        description: batchData.description || "",
+        location: batchData.location,
+        startDate: new Date(batchData.startDate),
+        endDate: new Date(batchData.endDate),
+        status: batchData.status,
+        isActive: batchData.isActive,
+        maxCapacity: batchData.maxCapacity,
+      });
+    } catch (error) {
+      console.error("Error loading batch:", error);
+    }
+  }, [batchId, batchData, form]);
 
   const onSubmit = async (values: BatchFormData) => {
-    console.log(batchId ? "Updating batch:" : "Creating batch:", values);
-    router.push("/admin/batches");
+    try {
+      const payload: BatchPayload = {
+        name: values.name,
+        batchCode: values.batchCode,
+        description: values.description || "",
+        location: values.location,
+        startDate: values.startDate.toISOString(),
+        endDate: values.endDate.toISOString(),
+        status: values.status,
+        isActive: values.isActive,
+        maxCapacity: values.maxCapacity,
+      };
+
+      if (isEditMode) {
+        await updateBatch({ id: batchId!, payload }).unwrap();
+      } else {
+        await saveBatch(payload).unwrap();
+      }
+
+      router.push("/admin/batches");
+    } catch (error) {
+      console.error(`Failed to ${isEditMode ? "update" : "create"} batch:`, error);
+      form.setError("root", {
+        type: "manual",
+        message: `Failed to ${isEditMode ? "update" : "create"} batch. Please try again.`,
+      });
+    }
   };
 
-  if (loading) {
+  if (isEditMode && isLoadingBatch) {
     return (
       <div className="p-6 text-center text-muted-foreground">
+        <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
         Loading batch details...
       </div>
     );
   }
 
-  const isEditMode = !!batchId;
-
-  // Add this function to handle navigation to details page
-  const handleViewDetails = () => {
-    if (batchId) {
-      router.push(`/admin/batches/view/${batchId}`);
-    }
-  };
+  const isLoading = form.formState.isSubmitting || isSaving || isUpdating;
 
   return (
     <div className="container mx-auto p-6 max-w-2xl">
@@ -191,7 +174,7 @@ export function BatchForm({ batchId }: { batchId?: string }) {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="space-y-4">
-                <Field.Text name="batchName" label="Batch Name" required />
+                <Field.Text name="name" label="Batch Name" required />
                 <Field.Text name="batchCode" label="Batch Code" required />
                 <Field.Select
                   name="location"
@@ -213,53 +196,44 @@ export function BatchForm({ batchId }: { batchId?: string }) {
                   options={statusOptions}
                   required
                 />
-                <Field.Select
-                  name="instructors"
-                  label="Instructor(s)"
-                  options={instructorOptions}
-                  multiple
-                  required
-                />
-                <Field.Select
-                  name="learners"
-                  label="Learner(s)"
-                  options={userOptions}
-                  multiple
-                  required
-                />
-                <Field.Select
-                  name="tests"
-                  label="Test(s)"
-                  options={testOptions}
-                  multiple
-                  required
+                <Field.Switch
+                  name="isActive"
+                  label="Active Batch"
+                  description="Enable this batch for use"
                 />
                 <Field.Text
-                  name="maxLearners"
-                  label="Max Learners"
+                  name="maxCapacity"
+                  label="Max Capacity"
                   type="number"
                   required
                 />
                 <Field.Textarea
-                  name="summaryNotes"
-                  label="Summary/Notes"
-                  placeholder="Enter summary or notes (optional)"
+                  name="description"
+                  label="Description"
+                  placeholder="Enter batch description (optional)"
                 />
               </div>
 
+              {form.formState.errors.root && (
+                <div className="text-sm text-red-600 font-medium">
+                  {form.formState.errors.root.message}
+                </div>
+              )}
+
               <div className="flex gap-4">
-                {isEditMode && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleViewDetails}
-                    className="flex-1"
-                  >
-                    View Details
-                  </Button>
-                )}
-                <Button type="submit" className="flex-1">
-                  {isEditMode ? "Save Changes" : "Create Batch"}
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="flex-1"
+                >
+                  {isLoading ? (
+                    <div className="flex items-center justify-center">
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      {isEditMode ? "Updating..." : "Creating..."}
+                    </div>
+                  ) : (
+                    isEditMode ? "Save Changes" : "Create Batch"
+                  )}
                 </Button>
                 <Button
                   type="button"

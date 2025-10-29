@@ -5,41 +5,30 @@ import { CustomBreadcrumbs } from "@/components/core/custom-breadcrumbs";
 import Table from "@/components/core/table/table";
 import { useTableState } from "@/hooks/use-table-state";
 import { createColumnHelper } from "@tanstack/react-table";
-import { Edit, Eye, Plus, Trash2, FileText } from "lucide-react";
+import { Edit, Eye, Plus, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { dummyBatches } from "../data/dummy-batches";
-import { Batch } from "../types/batch";
 import { ConfirmationDialog } from "@/components/core/confirmation-dialog";
-import { dummyUsers } from "../data/dummy-users";
-import { dummyTests } from "../data/dummy-test";
+import { useGetAllBatchesQuery, useDeleteBatchMutation } from "@/service/rtk-query/batches/batch-api";
+import { BatchResponse } from "@/service/rtk-query/batches/batch-type";
 
 export function BatchesView() {
   const router = useRouter();
   const tableStateHook = useTableState();
-  const columnHelper = createColumnHelper<Batch>();
+  const columnHelper = createColumnHelper<BatchResponse>();
 
-  // 🔹 State for delete confirmation
+  const { data: batchesData = [], isLoading } = useGetAllBatchesQuery();
+  const [deleteBatch] = useDeleteBatchMutation();
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedBatch, setSelectedBatch] = useState<Batch | null>(null);
+  const [selectedBatch, setSelectedBatch] = useState<BatchResponse | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  // Create maps for quick lookup of user and test names
-  const userMap = dummyUsers.reduce((acc, user) => {
-    acc[user.id] = user.name;
-    return acc;
-  }, {} as Record<string, string>);
-
-  const testMap = dummyTests.reduce((acc, test) => {
-    acc[test.id] = test.title;
-    return acc;
-  }, {} as Record<string, string>);
 
   const handleEdit = (batchId: string) => {
     router.push(`/admin/batches/edit/${batchId}`);
   };
 
-  const handleDeleteClick = (batch: Batch) => {
+  const handleDeleteClick = (batch: BatchResponse) => {
     setSelectedBatch(batch);
     setDeleteDialogOpen(true);
   };
@@ -49,12 +38,8 @@ export function BatchesView() {
 
     try {
       setIsDeleting(true);
-      console.log("Deleting batch:", selectedBatch.id);
-
-      // TODO: Replace this with API call (e.g., await deleteBatch(selectedBatch.id))
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      console.log(`Batch "${selectedBatch.batchName}" deleted successfully`);
+      await deleteBatch(selectedBatch.id).unwrap();
+      console.log(`Batch deleted successfully`);
     } catch (error) {
       console.error("Error deleting batch:", error);
     } finally {
@@ -69,7 +54,7 @@ export function BatchesView() {
   };
 
   const columns = [
-    columnHelper.accessor("batchName", {
+    columnHelper.accessor("name", {
       header: "Batch Name",
       cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
     }),
@@ -91,7 +76,7 @@ export function BatchesView() {
       header: "Start Date",
       cell: ({ getValue }) => (
         <span className="text-muted-foreground">
-          {getValue().toLocaleDateString()}
+          {new Date(getValue()).toLocaleDateString()}
         </span>
       ),
     }),
@@ -99,7 +84,7 @@ export function BatchesView() {
       header: "End Date",
       cell: ({ getValue }) => (
         <span className="text-muted-foreground">
-          {getValue().toLocaleDateString()}
+          {new Date(getValue()).toLocaleDateString()}
         </span>
       ),
     }),
@@ -107,31 +92,26 @@ export function BatchesView() {
       header: "Status",
       cell: ({ getValue }) => {
         const status = getValue();
-        const statusColors = {
-          Upcoming: "bg-blue-100 text-blue-800",
-          Ongoing: "bg-green-100 text-green-800",
-          Completed: "bg-gray-100 text-gray-800",
+        const statusColors: Record<string, string> = {
+          pending: "bg-blue-100 text-blue-800",
+          ongoing: "bg-green-100 text-green-800",
+          completed: "bg-gray-100 text-gray-800",
+          cancelled: "bg-red-100 text-red-800",
         };
+        const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
         return (
           <span
-            className={`rounded-sm px-2 py-1 text-sm font-semibold ${statusColors[status]}`}
+            className={`rounded-sm px-2 py-1 text-sm font-semibold ${
+              statusColors[status] || "bg-gray-100 text-gray-800"
+            }`}
           >
-            {status}
+            {statusLabel}
           </span>
         );
       },
     }),
-    columnHelper.accessor("instructors", {
-      header: "Instructors",
-      cell: ({ getValue }) => (
-        <span className="text-muted-foreground">
-          {getValue().length} instructor{getValue().length !== 1 ? "s" : ""}
-        </span>
-      ),
-    }),
-
-    columnHelper.accessor("maxLearners", {
-      header: "Max Learners",
+    columnHelper.accessor("maxCapacity", {
+      header: "Max Capacity",
       cell: ({ getValue }) => (
         <span className="text-muted-foreground">{getValue()}</span>
       ),
@@ -197,16 +177,16 @@ export function BatchesView() {
       <div className="py-3">
         <Table
           columns={columns}
-          data={dummyBatches}
-          totalCount={dummyBatches.length}
-          loading={false}
+          data={batchesData}
+          totalCount={batchesData.length}
+          loading={isLoading}
           actions={actions}
           tableState={tableStateHook}
           heading="Batch Management"
         />
       </div>
 
-      {/* 🔹 Confirmation Dialog */}
+      {/* Confirmation Dialog */}
       <ConfirmationDialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
@@ -214,7 +194,7 @@ export function BatchesView() {
         loading={isDeleting}
         message={
           selectedBatch
-            ? `Are you sure you want to delete the batch "${selectedBatch.batchName}"?`
+            ? `Are you sure you want to delete the batch "${selectedBatch.name}"?`
             : undefined
         }
       />

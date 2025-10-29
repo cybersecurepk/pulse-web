@@ -7,26 +7,29 @@ import { useTableState } from "@/hooks/use-table-state";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Edit, Plus, Trash2 } from "lucide-react";
 import React, { useState } from "react";
-import { dummyInstructors } from "../data/dummy-instructors";
 import { ConfirmationDialog } from "@/components/core/confirmation-dialog";
-import { instructor } from "../types/instructor";
+import { InstructorResponse } from "@/service/rtk-query/instructors/instructor-type";
 import { useRouter } from "next/navigation";
+import { useGetAllInstructorsQuery, useDeleteInstructorMutation } from "@/service/rtk-query/instructors/instructor-api";
 
 export function InstructorsView() {
   const tableStateHook = useTableState();
-  const columnHelper = createColumnHelper<instructor>();
+  const columnHelper = createColumnHelper<InstructorResponse>();
   const router = useRouter();
+
+  const { data: instructorsData = [], isLoading } = useGetAllInstructorsQuery();
+  const [deleteInstructor] = useDeleteInstructorMutation();
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedInstructor, setSelectedInstructor] =
-    useState<instructor | null>(null);
+    useState<InstructorResponse | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleEdit = (instructorId: string) => {
     router.push(`/admin/instructors/edit/${instructorId}`);
   };
 
-  const handleDelete = (instructor: instructor) => {
+  const handleDelete = (instructor: InstructorResponse) => {
     setSelectedInstructor(instructor);
     setDeleteDialogOpen(true);
   };
@@ -36,14 +39,8 @@ export function InstructorsView() {
 
     try {
       setIsDeleting(true);
-      console.log("Deleting instructor:", selectedInstructor.id);
-
-      // TODO: Replace this with API call (e.g., await deleteInstructor(selectedInstructor.id))
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      console.log(
-        `Instructor "${selectedInstructor.name}" deleted successfully`
-      );
+      await deleteInstructor(selectedInstructor.id).unwrap();
+      console.log(`Instructor deleted successfully`);
     } catch (error) {
       console.error("Error deleting instructor:", error);
     } finally {
@@ -54,19 +51,19 @@ export function InstructorsView() {
   };
 
   const columns = [
-    columnHelper.accessor("profilePhoto", {
-      header: "",
-      cell: ({ getValue }) => (
-        <img
-          src={getValue()}
-          alt="Instructor"
-          className="h-10 w-10 rounded-full object-cover border"
-        />
+    columnHelper.accessor("firstName", {
+      header: "First Name",
+      cell: ({ row }) => (
+        <span className="font-medium">
+          {row.original.firstName} {row.original.lastName}
+        </span>
       ),
     }),
-    columnHelper.accessor("name", {
-      header: "Name",
-      cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
+    columnHelper.accessor("lastName", {
+      header: "Last Name",
+      cell: ({ getValue }) => (
+        <span className="text-muted-foreground">{getValue()}</span>
+      ),
     }),
     columnHelper.accessor("email", {
       header: "Email",
@@ -76,34 +73,40 @@ export function InstructorsView() {
         </span>
       ),
     }),
-    columnHelper.accessor("phoneNumber", {
+    columnHelper.accessor("phone", {
       header: "Phone Number",
       cell: ({ getValue }) => (
         <span className="text-muted-foreground">{getValue()}</span>
       ),
     }),
-    columnHelper.accessor("location", {
-      header: "Location",
+    columnHelper.accessor("specialization", {
+      header: "Specialization",
       cell: ({ getValue }) => (
         <span className="text-muted-foreground">{getValue()}</span>
       ),
     }),
-    columnHelper.accessor("bio", {
-      header: "Bio / Summary",
+    columnHelper.accessor("expertise", {
+      header: "Expertise",
       cell: ({ getValue }) => (
         <span className="text-muted-foreground line-clamp-2 max-w-[250px] text-sm">
           {getValue()}
         </span>
       ),
     }),
-    columnHelper.accessor("assignedBatches", {
-      header: "Assigned Batches",
+    columnHelper.accessor("isActive", {
+      header: "Status",
       cell: ({ getValue }) => {
-        const batches = getValue();
-        return batches.length > 0 ? (
-          <span className="text-sm font-medium">{batches.join(", ")}</span>
-        ) : (
-          <span className="text-muted-foreground italic">None</span>
+        const isActive = getValue();
+        return (
+          <span
+            className={`rounded-sm px-2 py-1 text-sm font-semibold ${
+              isActive
+                ? "bg-green-100 text-green-800"
+                : "bg-red-100 text-red-800"
+            }`}
+          >
+            {isActive ? "Active" : "Inactive"}
+          </span>
         );
       },
     }),
@@ -150,9 +153,9 @@ export function InstructorsView() {
       <div className="py-3">
         <Table
           columns={columns}
-          data={dummyInstructors}
-          totalCount={dummyInstructors.length}
-          loading={false}
+          data={instructorsData}
+          totalCount={instructorsData.length}
+          loading={isLoading}
           tableState={tableStateHook}
           heading="Instructor Management"
           actions={[
@@ -165,7 +168,6 @@ export function InstructorsView() {
           ]}
         />
       </div>
-      {/* 🔹 Confirmation Dialog */}
       <ConfirmationDialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
@@ -173,7 +175,7 @@ export function InstructorsView() {
         loading={isDeleting}
         message={
           selectedInstructor
-            ? `Are you sure you want to delete the instructor "${selectedInstructor.name}"?`
+            ? `Are you sure you want to delete the instructor "${selectedInstructor.firstName} ${selectedInstructor.lastName}"?`
             : undefined
         }
       />

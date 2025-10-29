@@ -26,9 +26,12 @@ import { z } from "zod";
 import { TestBasicInfoForm } from "./test-basic-info-form";
 import { QuestionCreationForm } from "./question-creation-form";
 import { QuestionsListView } from "./questions-list-view";
-import { TestPayload } from "../types/test";
-import { dummyTests } from "../data/dummy-tests";
-import { dummyTestDetails } from "../data/dummy-test-details";
+import { 
+  useGetTestByIdQuery, 
+  useSaveTestMutation, 
+  useUpdateTestMutation 
+} from "@/service/rtk-query/tests/tests-apis";
+import { TestPayload } from "@/service/rtk-query/tests/tests-type";
 
 const testSchema = z.object({
   title: z
@@ -39,11 +42,16 @@ const testSchema = z.object({
     .string()
     .min(1, "Test code is required")
     .min(3, "Code must be at least 3 characters"),
-  type: z.string().min(1, "Test type is required"),
   description: z.string().optional(),
   isActive: z.boolean(),
   duration: z.number().min(1, "Duration must be at least 1 minute"),
   passCriteria: z.number().min(1, "Pass criteria must be at least 1%").max(100, "Pass criteria cannot exceed 100%"),
+  startDate: z.date({
+    message: "Start date is required",
+  }),
+  endDate: z.date({
+    message: "End date is required",
+  }),
   
   questions: z
     .array(
@@ -86,19 +94,25 @@ export function TestForm({ testId }: TestFormProps) {
   const [editingQuestionIndex, setEditingQuestionIndex] = useState<
     number | null
   >(null);
-  const [loading, setLoading] = useState(!!testId); // Loading state for edit mode
-  const [isEditMode] = useState(!!testId); // Determine if we're in edit mode
+  const isEditMode = !!testId;
+  
+  const { data: testData, isLoading: isLoadingTest } = useGetTestByIdQuery(testId!, { skip: !testId });
+  const [saveTest, { isLoading: isSaving }] = useSaveTestMutation();
+  const [updateTest, { isLoading: isUpdating }] = useUpdateTestMutation();
+  
+  const loading = testId ? isLoadingTest : false;
 
   const form = useForm<TestFormData>({
     resolver: zodResolver(testSchema),
     defaultValues: {
       title: "",
       testCode: "",
-      type: "MCQ",
       description: "",
       isActive: true,
       duration: 60,
       passCriteria: 70,
+      startDate: new Date(),
+      endDate: new Date(),
       questions: [],
       currentQuestion: {
         text: "",
@@ -115,47 +129,42 @@ export function TestForm({ testId }: TestFormProps) {
 
   // Load test data if in edit mode
   useEffect(() => {
-    if (!testId) return;
+    if (!testId || !testData) return;
 
-    const loadTestData = async () => {
-      try {
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        // Find the test in dummy data (replace with actual API call)
-        const testDetail = dummyTestDetails.find(t => t.id === testId);
-        if (!testDetail) throw new Error("Test not found");
-        
-        // Transform test data to form data
-        form.reset({
-          title: testDetail.title,
-          testCode: testDetail.testCode,
-          type: testDetail.type,
-          description: testDetail.description,
-          isActive: testDetail.isActive,
-          duration: testDetail.duration,
-          passCriteria: 70, // Default value, would come from API
-          questions: testDetail.questions,
-          currentQuestion: {
-            text: "",
-            points: 5,
-            options: [
-              { text: "", isCorrect: false },
-              { text: "", isCorrect: false },
-              { text: "", isCorrect: false },
-              { text: "", isCorrect: false },
-            ],
-          },
-        });
-      } catch (err) {
-        console.error("Failed to load test:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadTestData();
-  }, [testId, form]);
+    try {
+      form.reset({
+        title: testData.title,
+        testCode: testData.testCode || "",
+        description: testData.description,
+        isActive: testData.isActive,
+        duration: testData.duration,
+        passCriteria: testData.passingCriteria,
+        startDate: new Date(testData.startDate),
+        endDate: new Date(testData.endDate),
+        questions: testData.questions.map((q) => ({
+          text: q.text,
+          points: q.points,
+          questionNo: q.sortOrder + 1,
+          options: q.options.map((opt) => ({
+            text: opt.text,
+            isCorrect: opt.isCorrect,
+          })),
+        })),
+        currentQuestion: {
+          text: "",
+          points: 5,
+          options: [
+            { text: "", isCorrect: false },
+            { text: "", isCorrect: false },
+            { text: "", isCorrect: false },
+            { text: "", isCorrect: false },
+          ],
+        },
+      });
+    } catch (err) {
+      console.error("Failed to load test:", err);
+    }
+  }, [testId, testData, form]);
 
   // Show loading state when in edit mode
   if (loading) {
@@ -298,15 +307,19 @@ export function TestForm({ testId }: TestFormProps) {
   const onSubmit = async (data: TestFormData) => {
     try {
       const payload: TestPayload = {
+        testCode: data.testCode,
         title: data.title,
-        type: data.type,
         description: data.description || "",
         isActive: data.isActive,
         duration: data.duration,
-        questions: data.questions.map(q => ({
+        passingCriteria: data.passCriteria,
+        startDate: data.startDate.toISOString(),
+        endDate: data.endDate.toISOString(),
+        questions: data.questions.map((q, index) => ({
+          sortOrder: index,
           text: q.text,
-          points: q.points,
-          questionNo: q.questionNo,
+          type: "single", // Assuming single choice for now
+          points: q.points || 1,
           options: q.options.map(opt => ({
             text: opt.text,
             isCorrect: opt.isCorrect,
@@ -316,15 +329,11 @@ export function TestForm({ testId }: TestFormProps) {
 
       console.log(`${isEditMode ? "Updating" : "Creating"} test:`, payload);
       
-      // TODO: Replace with actual API call
-      // if (isEditMode) {
-      //   await updateTest(testId!, payload);
-      // } else {
-      //   await createTest(payload);
-      // }
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (isEditMode) {
+        await updateTest({ id: testId!, payload }).unwrap();
+      } else {
+        await saveTest(payload).unwrap();
+      }
       
       router.push("/admin/tests");
     } catch (err: unknown) {
@@ -336,7 +345,7 @@ export function TestForm({ testId }: TestFormProps) {
     }
   };
 
-  const isLoading = form.formState.isSubmitting;
+  const isLoading = form.formState.isSubmitting || isSaving || isUpdating;
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">

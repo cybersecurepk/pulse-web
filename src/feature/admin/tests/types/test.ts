@@ -1,35 +1,27 @@
-export interface Test {
-  id: string;
-  testName: string;
+// Use API response type from service layer
+export type { TestResponse as Test } from "@/service/rtk-query/tests/tests-type";
+
+// Local UI payload interfaces (for form handling)
+export interface TestFormPayload {
   testCode: string;
-  // testType: string;
-  description: string;
-  totalQuestions: number;
-  duration: number;
-  passCriteria: number;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface TestPayload {
   title: string;
-  type: string;
   description: string;
   isActive: boolean;
   duration: number;
-  questions: QuestionPayload[];
+  passingCriteria: number;
+  startDate: string;
+  endDate: string;
+  questions: QuestionFormPayload[];
 }
 
-export interface QuestionPayload {
+export interface QuestionFormPayload {
   text: string;
-  points?: number;
+  points: number;
   questionNo: number;
-  options: OptionPayload[];
+  options: OptionFormPayload[];
 }
 
-export interface OptionPayload {
+export interface OptionFormPayload {
   text: string;
   isCorrect: boolean;
 }
-

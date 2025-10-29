@@ -11,120 +11,125 @@ import {
 import { Form } from "@/components/ui/form";
 import { Field } from "@/components/core/hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { dummyInstructors } from "../data/dummy-instructors";
-import { instructor } from "../types/instructor";
+import {
+  useGetInstructorByIdQuery,
+  useSaveInstructorMutation,
+  useUpdateInstructorMutation,
+} from "@/service/rtk-query/instructors/instructor-api";
+import { InstructorPayload } from "@/service/rtk-query/instructors/instructor-type";
 
 const instructorSchema = z.object({
-  name: z
+  firstName: z
     .string()
-    .min(1, { message: "Name is required" })
-    .min(3, { message: "Name must be at least 3 characters" }),
+    .min(1, { message: "First name is required" })
+    .min(2, { message: "First name must be at least 2 characters" }),
+  lastName: z
+    .string()
+    .min(1, { message: "Last name is required" })
+    .min(2, { message: "Last name must be at least 2 characters" }),
   email: z
     .string()
     .min(1, { message: "Email is required" })
     .email({ message: "Invalid email format" }),
-  phoneNumber: z
+  phone: z
     .string()
     .min(1, { message: "Phone number is required" }),
-  location: z
+  specialization: z
     .string()
-    .min(1, { message: "Location is required" }),
-  profilePhoto: z
+    .min(1, { message: "Specialization is required" }),
+  expertise: z
     .string()
-    .min(1, { message: "Profile photo URL is required" }),
-  bio: z
-    .string()
-    .min(1, { message: "Bio is required" })
-    .max(500, { message: "Bio must be less than 500 characters" }),
-  assignedBatches: z
-    .array(z.string())
-    .min(0, { message: "Assigned batches are optional" }),
+    .min(1, { message: "Expertise is required" }),
+  isActive: z.boolean(),
 });
 
 type InstructorFormData = z.infer<typeof instructorSchema>;
 
-const locationOptions = [
-  { value: "New York", label: "New York" },
-  { value: "San Francisco", label: "San Francisco" },
-  { value: "Los Angeles", label: "Los Angeles" },
-  { value: "Chicago", label: "Chicago" },
-  { value: "Seattle", label: "Seattle" },
-  { value: "Austin", label: "Austin" },
-  { value: "Denver", label: "Denver" },
-  { value: "Miami", label: "Miami" },
-  { value: "Boston", label: "Boston" },
-  { value: "Portland", label: "Portland" },
-];
-
 export function InstructorForm({ instructorId }: { instructorId?: string }) {
   const router = useRouter();
-  const [loading, setLoading] = useState(!!instructorId);
+  const isEditMode = !!instructorId;
+
+  const { data: instructorData, isLoading: isLoadingInstructor } = useGetInstructorByIdQuery(instructorId!, {
+    skip: !instructorId,
+  });
+  const [saveInstructor, { isLoading: isSaving }] = useSaveInstructorMutation();
+  const [updateInstructor, { isLoading: isUpdating }] = useUpdateInstructorMutation();
 
   const form = useForm<InstructorFormData>({
     resolver: zodResolver(instructorSchema),
     defaultValues: {
-      name: "",
+      firstName: "",
+      lastName: "",
       email: "",
-      phoneNumber: "",
-      location: "",
-      profilePhoto: "",
-      bio: "",
-      assignedBatches: [],
+      phone: "",
+      specialization: "",
+      expertise: "",
+      isActive: true,
     },
   });
 
-  // ✅ Load instructor data into form if we're editing
   useEffect(() => {
-    if (!instructorId) return;
+    if (!instructorId || !instructorData) return;
 
-    const fetchInstructor = async () => {
-      try {
-        // Simulate loading delay
-        await new Promise((resolve) => setTimeout(resolve, 300));
-
-        // Pull from dummy data (replace this with API later)
-        const instructor = dummyInstructors.find((i) => i.id === instructorId);
-        if (!instructor) throw new Error("Instructor not found");
-
-        form.reset({
-          name: instructor.name,
-          email: instructor.email,
-          phoneNumber: instructor.phoneNumber,
-          location: instructor.location,
-          profilePhoto: instructor.profilePhoto,
-          bio: instructor.bio,
-          assignedBatches: instructor.assignedBatches,
-        });
-      } catch (error) {
-        console.error("Error loading instructor:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchInstructor();
-  }, [instructorId, form]);
+    try {
+      form.reset({
+        firstName: instructorData.firstName,
+        lastName: instructorData.lastName,
+        email: instructorData.email,
+        phone: instructorData.phone,
+        specialization: instructorData.specialization,
+        expertise: instructorData.expertise,
+        isActive: instructorData.isActive,
+      });
+    } catch (error) {
+      console.error("Error loading instructor:", error);
+    }
+  }, [instructorId, instructorData, form]);
 
   const onSubmit = async (values: InstructorFormData) => {
-    console.log(instructorId ? "Updating instructor:" : "Creating instructor:", values);
-    router.push("/admin/instructors");
+    try {
+      const payload: InstructorPayload = {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
+        phone: values.phone,
+        specialization: values.specialization,
+        expertise: values.expertise,
+        isActive: values.isActive,
+      };
+
+      if (isEditMode) {
+        await updateInstructor({ id: instructorId!, payload }).unwrap();
+      } else {
+        await saveInstructor(payload).unwrap();
+      }
+
+      router.push("/admin/instructors");
+    } catch (error) {
+      console.error(`Failed to ${isEditMode ? "update" : "create"} instructor:`, error);
+      form.setError("root", {
+        type: "manual",
+        message: `Failed to ${isEditMode ? "update" : "create"} instructor. Please try again.`,
+      });
+    }
   };
 
-  if (loading) {
+  if (isEditMode && isLoadingInstructor) {
     return (
       <div className="p-6 text-center text-muted-foreground">
+        <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
         Loading instructor details...
       </div>
     );
   }
 
-  const isEditMode = !!instructorId;
+  const isLoading = form.formState.isSubmitting || isSaving || isUpdating;
 
   return (
     <div className="container mx-auto p-6 max-w-2xl">
@@ -161,22 +166,42 @@ export function InstructorForm({ instructorId }: { instructorId?: string }) {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="space-y-4">
-                <Field.Text name="name" label="Full Name" required />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Field.Text name="firstName" label="First Name" required />
+                  <Field.Text name="lastName" label="Last Name" required />
+                </div>
                 <Field.Text name="email" label="Email Address" type="email" required />
-                <Field.Text name="phoneNumber" label="Phone Number" required />
-                <Field.Select
-                  name="location"
-                  label="Location"
-                  options={locationOptions}
-                  required
+                <Field.Text name="phone" label="Phone Number" required />
+                <Field.Text name="specialization" label="Specialization" required />
+                <Field.Textarea 
+                  name="expertise" 
+                  label="Expertise" 
+                  placeholder="e.g., React, Node.js, TypeScript"
+                  required 
                 />
-                <Field.Text name="profilePhoto" label="Profile Photo URL" required />
-                <Field.Textarea name="bio" label="Bio / Summary" placeholder="Enter instructor bio/summary" required />
+                <Field.Switch
+                  name="isActive"
+                  label="Active Instructor"
+                  description="Enable this instructor for use"
+                />
               </div>
 
+              {form.formState.errors.root && (
+                <div className="text-sm text-red-600 font-medium">
+                  {form.formState.errors.root.message}
+                </div>
+              )}
+
               <div className="flex gap-3 pt-4">
-                <Button type="submit" className="flex-1">
-                  {isEditMode ? "Update Instructor" : "Create Instructor"}
+                <Button type="submit" disabled={isLoading} className="flex-1">
+                  {isLoading ? (
+                    <div className="flex items-center justify-center">
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      {isEditMode ? "Updating..." : "Creating..."}
+                    </div>
+                  ) : (
+                    isEditMode ? "Update Instructor" : "Create Instructor"
+                  )}
                 </Button>
                 <Button
                   variant="outline"
