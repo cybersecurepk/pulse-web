@@ -89,7 +89,7 @@ export function ApplicationView() {
               variant="ghost"
               size="icon"
               onClick={() => handleApprove(applicant.id)}
-              title="Approve applicant"
+              title="Approve application"
               className="h-8 w-8 text-green-600 hover:bg-green-50 hover:text-green-700"
             >
               <CheckCircle className="h-4 w-4" />
@@ -98,7 +98,7 @@ export function ApplicationView() {
               variant="ghost"
               size="icon"
               onClick={() => handleReject(applicant.id)}
-              title="Reject applicant"
+              title="Reject application"
               className="h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700"
             >
               <XCircle className="h-4 w-4" />
@@ -112,10 +112,10 @@ export function ApplicationView() {
   return (
     <div>
       <CustomBreadcrumbs
-        heading="Applicants Management"
+        heading="Applications Management"
         links={[
           { name: "Dashboard", href: "/admin/dashboard" },
-          { name: "Applicants Management" },
+          { name: "Applications Management" },
         ]}
       />
       <div className="py-3">
@@ -125,7 +125,7 @@ export function ApplicationView() {
           totalCount={dummyApplicants.length}
           loading={false}
           tableState={tableStateHook}
-          heading="Applicants Management"
+          heading="Application Management"
         />
       </div>
     </div>
