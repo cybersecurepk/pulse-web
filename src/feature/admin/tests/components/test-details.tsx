@@ -11,34 +11,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Check } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { dummyTestDetails } from "../data/dummy-test-details";
-import { DummyTestDetail } from "../data/dummy-test-details";
+import { useGetTestByIdQuery } from "@/service/rtk-query/tests/tests-apis";
+import { TestResponse } from "@/service/rtk-query/tests/tests-type";
 
 export function TestDetails({ params }: { params: { id: string } }) {
-  const [test, setTest] = useState<DummyTestDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchTest = async () => {
-      try {
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        // Find the test in dummy data (replace with actual API call)
-        const testDetail = dummyTestDetails.find(t => t.id === params.id);
-        if (!testDetail) throw new Error("Test not found");
-        
-        setTest(testDetail);
-      } catch (err) {
-        console.error("Failed to load test:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTest();
-  }, [params.id]);
+  const { data: test, isLoading: loading } = useGetTestByIdQuery(params.id);
 
   if (loading) {
     return (
@@ -97,7 +74,7 @@ export function TestDetails({ params }: { params: { id: string } }) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="border rounded-lg p-3">
               <p className="text-sm text-muted-foreground">Test Code</p>
-              <p className="font-medium">{test.testCode}</p>
+              <p className="font-medium">{test.testCode || "-"}</p>
             </div>
             <div className="border rounded-lg p-3">
               <p className="text-sm text-muted-foreground">Duration</p>
@@ -105,7 +82,7 @@ export function TestDetails({ params }: { params: { id: string } }) {
             </div>
             <div className="border rounded-lg p-3">
               <p className="text-sm text-muted-foreground">Questions</p>
-              <p className="font-medium">{test.questions.length}</p>
+              <p className="font-medium">{test.questions?.length || 0}</p>
             </div>
           </div>
         </CardContent>
@@ -120,18 +97,18 @@ export function TestDetails({ params }: { params: { id: string } }) {
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            {test.questions.map((question) => (
+            {test.questions?.map((question, index) => (
               <div 
-                key={question.questionNo} 
+                key={question.id} 
                 className="border rounded-lg p-4 hover:bg-muted/50 transition-colors"
               >
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex items-center gap-2">
                     <div className="flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-700 rounded font-medium text-sm">
-                      {question.questionNo}
+                      {index + 1}
                     </div>
                     <h3 className="font-semibold text-gray-900">
-                      Q{question.questionNo}
+                      Q{index + 1}
                     </h3>
                   </div>
                   {question.points && (
@@ -146,7 +123,7 @@ export function TestDetails({ params }: { params: { id: string } }) {
                 </p>
                 
                 <div className="space-y-2">
-                  {question.options.map((option, optIndex) => (
+                  {question.options?.map((option, optIndex) => (
                     <div
                       key={optIndex}
                       className={`flex items-start gap-3 p-3 rounded border transition-colors ${

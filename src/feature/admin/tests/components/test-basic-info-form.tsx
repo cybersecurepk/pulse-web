@@ -3,12 +3,6 @@
 import { Field } from "@/components/core/hook-form";
 
 export function TestBasicInfoForm() {
-  const testTypeOptions = [
-    { value: "MCQ", label: "Multiple Choice Questions" },
-    { value: "Pictorial", label: "Pictorial" },
-    { value: "Boolean", label: "True & False" },
-  ];
-
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4">
@@ -26,14 +20,6 @@ export function TestBasicInfoForm() {
           required
         />
 
-        <Field.Select
-          name="type"
-          label="Test Type"
-          placeholder="Select test type"
-          options={testTypeOptions}
-          required
-        />
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Field.Text
             name="duration"
@@ -48,6 +34,20 @@ export function TestBasicInfoForm() {
             label="Pass Criteria (%)"
             placeholder="70"
             type="number"
+            required
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Field.DatePicker
+            name="startDate"
+            label="Start Date"
+            required
+          />
+
+          <Field.DatePicker
+            name="endDate"
+            label="End Date"
             required
           />
         </div>

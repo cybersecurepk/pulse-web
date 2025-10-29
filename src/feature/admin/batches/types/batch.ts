@@ -1,21 +1,14 @@
-export interface Batch {
-  id: string;
-  batchName: string;
+
+export type { BatchResponse as Batch } from "@/service/rtk-query/batches/batch-type";
+
+export interface BatchFormPayload {
+  name: string;
   batchCode: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+  maxCapacity: number;
   location: string;
-  startDate: Date;
-  endDate: Date;
-  status: "Upcoming" | "Ongoing" | "Completed";
-  instructors: string[];
-  learners?: string[]; // Optional array of learner IDs
-  tests?: string[]; // Optional array of test IDs
-  maxLearners: number;
-  // courseProgram: string;
-  summaryNotes: string;
-  testDates: Date[];
-  attachments: string[];
-  createdBy: string;
-  updatedBy: string;
-  createdAt: Date;
-  updatedAt: Date;
+  status: string;
 }

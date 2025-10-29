@@ -9,23 +9,26 @@ import { Edit, Eye, Plus, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { ConfirmationDialog } from "@/components/core/confirmation-dialog";
 import { useRouter } from "next/navigation";
-import { dummyTests } from "../data/dummy-tests";
-import { Test } from "../types/test";
+import { useGetAllTestsQuery, useDeleteTestMutation } from "@/service/rtk-query/tests/tests-apis";
+import { TestResponse } from "@/service/rtk-query/tests/tests-type";
 
 export function TestsView() {
   const router = useRouter();
   const tableStateHook = useTableState();
-  const columnHelper = createColumnHelper<Test>();
+  const columnHelper = createColumnHelper<TestResponse>();
+  
+  const { data: testsData = [], isLoading } = useGetAllTestsQuery();
+  const [deleteTest] = useDeleteTestMutation();
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedTest, setSelectedTest] = useState<Test | null>(null);
+  const [selectedTest, setSelectedTest] = useState<TestResponse | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleEdit = (testId: string) => {
     router.push(`/admin/tests/edit/${testId}`);
   };
 
-  const handleDelete = (test: Test) => {
+  const handleDelete = (test: TestResponse) => {
     setSelectedTest(test);
     setDeleteDialogOpen(true);
   };
@@ -39,14 +42,8 @@ export function TestsView() {
 
     try {
       setIsDeleting(true);
-      console.log("Deleting test:", selectedTest.id);
-
-      // TODO: Replace this with API call (e.g., await deleteTest(selectedTest.id))
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      console.log(
-        `Test "${selectedTest.testName}" deleted successfully`
-      );
+      await deleteTest(selectedTest.id).unwrap();
+      console.log(`Test deleted successfully`);
     } catch (error) {
       console.error("Error deleting test:", error);
     } finally {
@@ -57,7 +54,7 @@ export function TestsView() {
   };
 
   const columns = [
-    columnHelper.accessor("testName", {
+    columnHelper.accessor("title", {
       header: "Test Name",
       cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
     }),
@@ -65,20 +62,14 @@ export function TestsView() {
       header: "Test Code",
       cell: ({ getValue }) => (
         <span className="text-muted-foreground font-mono text-sm">
-          {getValue()}
+          {getValue() || "-"}
         </span>
       ),
     }),
-    // columnHelper.accessor("testType", {
-    //   header: "Type",
-    //   cell: ({ getValue }) => (
-    //     <span className="text-muted-foreground">{getValue()}</span>
-    //   ),
-    // }),
-    columnHelper.accessor("totalQuestions", {
+    columnHelper.accessor("questions", {
       header: "Questions",
       cell: ({ getValue }) => (
-        <span className="text-muted-foreground">{getValue()}</span>
+        <span className="text-muted-foreground">{getValue()?.length || 0}</span>
       ),
     }),
     columnHelper.accessor("duration", {
@@ -87,7 +78,7 @@ export function TestsView() {
         <span className="text-muted-foreground">{getValue()} min</span>
       ),
     }),
-    columnHelper.accessor("passCriteria", {
+    columnHelper.accessor("passingCriteria", {
       header: "Pass Criteria",
       cell: ({ getValue }) => (
         <span className="text-muted-foreground">{getValue()}%</span>
@@ -172,9 +163,9 @@ export function TestsView() {
       <div className="py-3">
         <Table
           columns={columns}
-          data={dummyTests}
-          totalCount={dummyTests.length}
-          loading={false}
+          data={testsData}
+          totalCount={testsData.length}
+          loading={isLoading}
           actions={actions}
           tableState={tableStateHook}
           heading="Test Management"
@@ -188,7 +179,7 @@ export function TestsView() {
         loading={isDeleting}
         message={
           selectedTest
-            ? `Are you sure you want to delete the test "${selectedTest.testName}"?`
+            ? `Are you sure you want to delete the test "${selectedTest.title}"?`
             : undefined
         }
       />
