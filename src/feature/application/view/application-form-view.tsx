@@ -1,22 +1,24 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useForm, FormProvider } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Stepper } from "@/components/core/stepper"
+import { useState } from "react";
+import { useForm, FormProvider } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Stepper } from "@/components/core/stepper";
 import {
   PersonalInfoStep,
   EducationStep,
   ExperienceStep,
   AvailabilityStep,
   ReviewStep,
-} from "../components"
-import { applicationFormSchema, ApplicationFormData } from "../data/schema"
-import { STEPS } from "../data/constants"
-import { toast } from "sonner"
-import { useRouter } from "next/navigation"
+} from "../components";
+import { applicationFormSchema, ApplicationFormData } from "../data/schema";
+import { STEPS } from "../data/constants";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { useSaveUserMutation } from "@/service/rtk-query/users/users-apis";
+import { CheckCircle } from "lucide-react";
 
 const PERSONAL_INFO_FIELDS: (keyof ApplicationFormData)[] = [
   "name",
@@ -25,7 +27,7 @@ const PERSONAL_INFO_FIELDS: (keyof ApplicationFormData)[] = [
   "primaryPhone",
   "currentCity",
   "permanentCity",
-]
+];
 
 const EDUCATION_FIELDS: (keyof ApplicationFormData)[] = [
   "yearsOfEducation",
@@ -33,9 +35,12 @@ const EDUCATION_FIELDS: (keyof ApplicationFormData)[] = [
   "majors",
   "university",
   "yearOfCompletion",
-]
+];
 
-const EXPERIENCE_FIELDS: (keyof ApplicationFormData)[] = ["totalExperience", "experienceUnit"]
+const EXPERIENCE_FIELDS: (keyof ApplicationFormData)[] = [
+  "totalExperience",
+  "experienceUnit",
+];
 
 const AVAILABILITY_FIELDS: (keyof ApplicationFormData)[] = [
   "workingDays",
@@ -43,12 +48,14 @@ const AVAILABILITY_FIELDS: (keyof ApplicationFormData)[] = [
   "onsiteSessions",
   "remoteSessions",
   "consent",
-]
+];
 
 export function ApplicationFormView() {
-  const [currentStep, setCurrentStep] = useState(0)
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
 
-  const router = useRouter()
+  const router = useRouter();
+  const [saveUser, { isLoading: isSaving }] = useSaveUserMutation();
   const form = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationFormSchema),
     mode: "onBlur",
@@ -61,19 +68,19 @@ export function ApplicationFormView() {
       secondaryPhone: "",
       currentCity: "",
       permanentCity: "",
-      
+
       // Education
       yearsOfEducation: undefined,
       highestDegree: undefined,
       majors: "",
       university: "",
       yearOfCompletion: "",
-      
+
       // Experience
       totalExperience: "",
       experienceUnit: "years",
       experiences: [],
-      
+
       // Availability & Interests
       workingDays: undefined,
       weekends: undefined,
@@ -84,122 +91,154 @@ export function ApplicationFormView() {
       grc: false,
       consent: false,
     },
-  })
+  });
 
   const validateCurrentStep = async () => {
-    let fieldsToValidate: (keyof ApplicationFormData)[] = []
+    let fieldsToValidate: (keyof ApplicationFormData)[] = [];
 
     switch (currentStep) {
       case 0:
-        fieldsToValidate = PERSONAL_INFO_FIELDS
-        break
+        fieldsToValidate = PERSONAL_INFO_FIELDS;
+        break;
       case 1:
-        fieldsToValidate = EDUCATION_FIELDS
-        break
+        fieldsToValidate = EDUCATION_FIELDS;
+        break;
       case 2:
-        fieldsToValidate = EXPERIENCE_FIELDS
-        break
+        fieldsToValidate = EXPERIENCE_FIELDS;
+        break;
       case 3:
-        fieldsToValidate = AVAILABILITY_FIELDS
-        break
+        fieldsToValidate = AVAILABILITY_FIELDS;
+        break;
       case 4:
         // Review step - no validation needed
-        return true
+        return true;
       default:
-        return true
+        return true;
     }
 
-    const result = await form.trigger(fieldsToValidate)
-    return result
-  }
+    const result = await form.trigger(fieldsToValidate);
+    return result;
+  };
 
   const handleNext = async () => {
-    const isValid = await validateCurrentStep()
+    const isValid = await validateCurrentStep();
 
     if (isValid && currentStep < STEPS.length - 1) {
-      setCurrentStep((prev) => prev + 1)
+      setCurrentStep((prev) => prev + 1);
     }
-  }
+  };
 
   const handleBack = () => {
     if (currentStep > 0) {
-      setCurrentStep((prev) => prev - 1)
+      setCurrentStep((prev) => prev - 1);
     }
-  }
+  };
 
   const handleSubmit = async (data: ApplicationFormData) => {
-    console.log("Form submitted:", data)
-    toast.success("Application submitted successfully!")
-    router.push("/")
-    // TODO: Send data to backend API
-  }
+    try {
+      const payload = {
+        ...data,
+        experiences: data.experiences?.map((e) => ({
+          organization: e.organization,
+          designation: e.designation,
+          from: e.from ? new Date(e.from).toISOString() : undefined,
+          to: e.to ? new Date(e.to).toISOString() : undefined,
+        })),
+        applicationStatus: "pending" as const,
+      };
+      await saveUser(payload).unwrap();
+      setIsComplete(true);
+    } catch (err) {
+      console.error("Failed to submit application", err);
+      toast.error("Failed to submit application");
+    }
+  };
 
   // Simple click handler for the submit button
   const handleFormSubmit = async () => {
     // Get the form data and submit it
-    const data = form.getValues()
-    await handleSubmit(data)
-  }
+    const data = form.getValues();
+    await handleSubmit(data);
+  };
 
   const renderStepContent = () => {
     switch (currentStep) {
       case 0:
-        return <PersonalInfoStep form={form} />
+        return <PersonalInfoStep form={form} />;
       case 1:
-        return <EducationStep form={form} />
+        return <EducationStep form={form} />;
       case 2:
-        return <ExperienceStep form={form} />
+        return <ExperienceStep form={form} />;
       case 3:
-        return <AvailabilityStep form={form} />
+        return <AvailabilityStep form={form} />;
       case 4:
-        return <ReviewStep data={form.getValues()} />
+        return <ReviewStep data={form.getValues()} />;
       default:
-        return null
+        return null;
     }
-  }
+  };
 
-  const isLastStep = currentStep === STEPS.length - 1
+  const isLastStep = currentStep === STEPS.length - 1;
 
   return (
     <FormProvider {...form}>
-      <form>
-        <Card className="w-full max-w-[1400px] min-w-[800px] ">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-center text-xl">
-              Application Form
-            </CardTitle>
-            <div className="mt-4">
-              <Stepper steps={STEPS} currentStep={currentStep} />
-            </div>
-            <p className="text-sm text-muted-foreground text-center mt-3">
-              Mandatory fields are marked with an asterisk (*)
-            </p>
-          </CardHeader>
-
-          <CardContent className="space-y-4">
-            {renderStepContent()}
-
-            <div className="flex justify-between pt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleBack}
-                disabled={currentStep === 0}
-              >
-                Back
-              </Button>
-
-              {isLastStep ? (
-                <Button type="button" onClick={handleFormSubmit}>Submit Application</Button>
-              ) : (
-                <Button type="button" onClick={handleNext}>
-                  Next step →
-                </Button>
-              )}
-            </div>
-          </CardContent>
+      {isComplete ? (
+        <Card className="w-full max-w-[600px] mx-auto border-green-500 bg-green-50 mt-12 text-green-700 shadow-lg flex flex-col items-center justify-center p-12">
+          <CheckCircle className="w-20 h-20 mb-4 text-green-500" />
+          <CardTitle className="text-center text-2xl font-semibold mb-2">
+            Application Submitted!
+          </CardTitle>
+          <p className="text-center text-green-700">
+            Thank you for applying. Your application has been received
+            successfully. We'll be in touch soon.
+          </p>
         </Card>
-      </form>
+      ) : (
+        <form>
+          <Card className="w-full max-w-[1400px] min-w-[800px] ">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-center text-xl">
+                Application Form
+              </CardTitle>
+              <div className="mt-4">
+                <Stepper steps={STEPS} currentStep={currentStep} />
+              </div>
+              <p className="text-sm text-muted-foreground text-center mt-3">
+                Mandatory fields are marked with an asterisk (*)
+              </p>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              {renderStepContent()}
+
+              <div className="flex justify-between pt-6">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleBack}
+                  disabled={currentStep === 0}
+                >
+                  Back
+                </Button>
+
+                {isLastStep ? (
+                  <Button
+                    type="button"
+                    onClick={handleFormSubmit}
+                    disabled={isSaving}
+                  >
+                    {isSaving ? "Submitting..." : "Submit Application"}
+                  </Button>
+                ) : (
+                  <Button type="button" onClick={handleNext}>
+                    Next step →
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </form>
+      )}
     </FormProvider>
-  )
+  );
 }

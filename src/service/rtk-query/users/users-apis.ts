@@ -51,8 +51,11 @@ const usersApi = appApi
           { type: "Users", id: "users-dropdown" },
         ],
       }),
-      updateUser: build.mutation<UserResponse, UserPayload>({
-        query: ({ id, ...payload }) => ({
+      updateUser: build.mutation<
+        UserResponse,
+        { id: string; payload: UserPayload }
+      >({
+        query: ({ id, payload }) => ({
           url: `/users/${id}`,
           method: "PUT",
           body: payload,

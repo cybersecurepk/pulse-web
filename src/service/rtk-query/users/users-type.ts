@@ -24,20 +24,42 @@ export interface Company {
   updatedAt: string;
 }
 
+export type Experience = {
+  organization?: string;
+  designation?: string;
+  from?: string;
+  to?: string;
+};
+
 export interface User {
   id: string;
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
-  password: string;
-  role: UserRole;
-  phone?: string;
-  isActive: boolean;
-  isDeleted: boolean;
+  gender: "male" | "female" | "other";
+  primaryPhone: string;
+  secondaryPhone?: string;
+  currentCity: string;
+  permanentCity: string;
+  yearsOfEducation: "12" | "14" | "16" | "18";
+  highestDegree: "HSSC" | "A-Levels" | "BS" | "BSc" | "MS" | "MSc";
+  majors: string;
+  university: string;
+  yearOfCompletion: string;
+  totalExperience: string;
+  experienceUnit: "months" | "years";
+  experiences?: Experience[];
+  workingDays: "yes" | "no";
+  weekends: "yes" | "no";
+  onsiteSessions: "yes" | "no";
+  remoteSessions: "yes" | "no";
+  blueTeam: boolean;
+  redTeam: boolean;
+  grc: boolean;
+  consent: boolean;
+  applicationStatus: "pending" | "approved" | "rejected";
   createdAt: string;
   updatedAt: string;
-  lastLoginAt?: string;
-  company?: Company;
+  batchUsers?: unknown[];
 }
 
 export interface UserDropdown {
@@ -47,18 +69,11 @@ export interface UserDropdown {
   email: string;
 }
 
-export interface UserPayload {
-  id?: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  role: UserRole;
-  phone?: string;
-  companyId?: string;
-}
+export type UserPayload = Omit<
+  User,
+  "id" | "createdAt" | "updatedAt" | "batchUsers"
+>;
 
-export type UserResponse = User
-
+export type UserResponse = User;
 export type UserListResponse = User[];
 export type UserDropdownResponse = UserDropdown[];

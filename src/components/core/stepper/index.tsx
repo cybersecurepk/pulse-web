@@ -1,47 +1,48 @@
-"use client"
-
-import * as React from "react"
-import { cn } from "@/lib/utils"
-import { CheckIcon } from "lucide-react"
+"use client";
+import * as React from "react";
+import { cn } from "@/lib/utils";
+import { Check } from "lucide-react";
 
 interface Step {
-  id: number
-  title: string
-  description?: string
+  id: number;
+  title: string;
+  description?: string;
 }
 
 interface StepperProps {
-  steps: Step[]
-  currentStep: number
+  steps: Step[];
+  currentStep: number;
 }
 
 export function Stepper({ steps, currentStep }: StepperProps) {
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between">
         {steps.map((step, index) => {
-          const isActive = currentStep === index
-          const isCompleted = currentStep > index
-          
+          const isActive = currentStep === index;
+          const isCompleted = currentStep > index;
           return (
             <React.Fragment key={step.id}>
-              <div className="flex flex-col items-center gap-2">
+              {/* Circle + Label */}
+              <div className="flex flex-col items-center">
                 <div
                   className={cn(
-                    "flex size-10 items-center justify-center rounded-full border-2 transition-colors",
+                    "flex size-7 items-center justify-center rounded-full border-2 text-xs transition-colors",
                     isCompleted && "bg-blue-600 border-blue-600 text-white",
                     isActive && "border-blue-600 text-blue-600 bg-white",
-                    !isActive && !isCompleted && "border-gray-300 text-gray-300 bg-white"
+                    !isActive &&
+                      !isCompleted &&
+                      "border-gray-300 text-gray-300 bg-white"
                   )}
                 >
                   {isCompleted ? (
-                    <CheckIcon className="size-5" />
+                    <Check className="size-4" />
                   ) : (
-                    <span className="text-sm font-semibold">{step.id}</span>
+                    <span className="font-semibold">{step.id}</span>
                   )}
                 </div>
-                <div className="text-center">
-                  <div
+                <div className="mt-1 text-center">
+                  <span
                     className={cn(
                       "text-xs font-medium",
                       isActive && "text-blue-600",
@@ -50,22 +51,24 @@ export function Stepper({ steps, currentStep }: StepperProps) {
                     )}
                   >
                     {step.title}
-                  </div>
+                  </span>
                 </div>
               </div>
-              
+              {/* Connecting Line */}
               {index < steps.length - 1 && (
-                <div
-                  className={cn(
-                    "h-0.5 flex-1 mx-2 transition-colors",
-                    currentStep > index ? "bg-blue-600" : "bg-gray-300"
-                  )}
-                />
+                <div className="flex-1 flex items-center mx-2 mt-3.5">
+                  <div
+                    className={cn(
+                      "w-full h-0.5 transition-colors",
+                      currentStep > index ? "bg-blue-600" : "bg-gray-300"
+                    )}
+                  />
+                </div>
               )}
             </React.Fragment>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }
