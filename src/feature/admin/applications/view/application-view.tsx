@@ -3,26 +3,80 @@
 import Button from "@/components/core/button";
 import { CustomBreadcrumbs } from "@/components/core/custom-breadcrumbs";
 import Table from "@/components/core/table/table";
+import { ConfirmationDialog } from "@/components/core/confirmation-dialog";
 import { useTableState } from "@/hooks/use-table-state";
 import { createColumnHelper } from "@tanstack/react-table";
-import { CheckCircle, XCircle } from "lucide-react";
-import React from "react";
-import { useGetAllUsersQuery } from "@/service/rtk-query/users/users-apis";
+import { CheckCircle, XCircle, Eye } from "lucide-react";
+import React, { useState } from "react";
+import { useGetAllUsersQuery, useUpdateUserMutation, useGetUserByIdQuery } from "@/service/rtk-query/users/users-apis";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export function ApplicationView() {
   const tableStateHook = useTableState();
   const columnHelper = createColumnHelper<any>();
-
+  const router = useRouter();
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    action: null as 'approve' | 'reject' | null,
+    userId: '',
+    userName: '',
+  });
+  const [isUpdating, setIsUpdating] = useState(false);
+  
   // Fetch real users from backend
   const { data: users = [], isLoading } = useGetAllUsersQuery();
+  const [updateUser] = useUpdateUserMutation();
 
-  const handleApprove = (userId: string) => {
-    // TODO: Call updateUser mutation to set applicationStatus to "approved"
-    console.log("Approved user:", userId);
+  const handleApprove = async (userId: string, userName: string) => {
+    setConfirmDialog({
+      open: true,
+      action: 'approve',
+      userId,
+      userName,
+    });
   };
-  const handleReject = (userId: string) => {
-    // TODO: Call updateUser mutation to set applicationStatus to "rejected"
-    console.log("Rejected user:", userId);
+  
+  const handleReject = async (userId: string, userName: string) => {
+    setConfirmDialog({
+      open: true,
+      action: 'reject',
+      userId,
+      userName,
+    });
+  };
+
+  const handleView = async (userId: string) => {
+    // Navigate to the application view page
+    router.push(`/admin/applications/view/${userId}`);
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmDialog.action || !confirmDialog.userId) return;
+    
+    setIsUpdating(true);
+    try {
+      const status = confirmDialog.action === 'approve' ? 'approved' : 'rejected';
+      await updateUser({ 
+        id: confirmDialog.userId, 
+        payload: { applicationStatus: status }
+      }).unwrap();
+      
+      toast.success(
+        `Application ${confirmDialog.action === 'approve' ? 'approved' : 'rejected'} successfully for ${confirmDialog.userName}`
+      );
+    } catch (error: any) {
+      console.error(`Error ${confirmDialog.action}ing user:`, error);
+      toast.error(`Failed to ${confirmDialog.action} application: ${error?.data?.message || error?.message || 'Unknown error'}`);
+    } finally {
+      setIsUpdating(false);
+      setConfirmDialog({
+        open: false,
+        action: null,
+        userId: '',
+        userName: '',
+      });
+    }
   };
 
   const columns = [
@@ -97,7 +151,16 @@ export function ApplicationView() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleApprove(user.id)}
+              title="View profile"
+              onClick={() => handleView(user.id)}
+              className="h-8 w-8"
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleApprove(user.id, user.name)}
               title="Approve application"
               className="h-8 w-8 text-green-600 hover:bg-green-50 hover:text-green-700"
             >
@@ -106,7 +169,7 @@ export function ApplicationView() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleReject(user.id)}
+              onClick={() => handleReject(user.id, user.name)}
               title="Reject application"
               className="h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700"
             >
@@ -137,6 +200,14 @@ export function ApplicationView() {
           heading="Application Management"
         />
       </div>
+      
+      <ConfirmationDialog
+        open={confirmDialog.open}
+        message={`Are you sure you want to ${confirmDialog.action} the application for ${confirmDialog.userName}?`}
+        loading={isUpdating}
+        onClose={() => setConfirmDialog({ ...confirmDialog, open: false })}
+        onConfirm={handleConfirmAction}
+      />
     </div>
   );
 }

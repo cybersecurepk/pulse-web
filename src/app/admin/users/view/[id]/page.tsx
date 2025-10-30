@@ -1,15 +1,10 @@
-import { useGetUserByIdQuery } from "@/service/rtk-query/users/users-apis";
-import { notFound } from "next/navigation";
+import { UserProfileView } from "@/feature/admin/users/view/user-profile-view";
 
-interface PageProps {
-  params: { id: string };
-}
-
-export default function Page({ params }: PageProps) {
-  const { id } = params;
-  const { data, isLoading, isError } = useGetUserByIdQuery(id);
-
-  if (isError) return notFound();
-
-  return <div className="p-4"></div>;
+export default async function ViewUserRoute({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const resolvedParams = await params;
+  return <UserProfileView params={resolvedParams} />;
 }

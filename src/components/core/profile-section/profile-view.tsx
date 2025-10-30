@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { IdCard, User, Cake, MapPin, Phone, Mail, Edit3, GraduationCap, Briefcase } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, IdCard, User, Cake, MapPin, Phone, Mail, Edit3, GraduationCap, Briefcase } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -25,6 +26,7 @@ interface ProfileViewProps {
   description?: string;
   onEdit?: () => void;
   showEditButton?: boolean;
+  backUrl?: string;
 }
 
 export function ProfileViewComponent({
@@ -33,12 +35,20 @@ export function ProfileViewComponent({
   description = "View your profile information",
   onEdit,
   showEditButton = true,
+  backUrl,
 }: ProfileViewProps) {
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
+          {backUrl && (
+            <Link href={backUrl}>
+              <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            </Link>
+          )}
           <IdCard className="h-8 w-8 text-muted-foreground" />
           <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
         </div>

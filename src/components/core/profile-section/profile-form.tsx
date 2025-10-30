@@ -226,6 +226,13 @@ export function ProfileFormComponent({
   const profileData = form.watch();
   const showEditControls = isEditing || isEditMode;
 
+  // Determine the title to display
+  const displayTitle = title || 
+    (isEditMode ? "Edit Profile" : 
+     viewOnly ? "View Profile" : 
+     isEditing ? "Edit Profile" : 
+     "My Profile");
+
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       {/* Header */}
@@ -240,13 +247,7 @@ export function ProfileFormComponent({
           )}
           <IdCard className="h-8 w-8 text-muted-foreground" />
           <h1 className="text-3xl font-bold tracking-tight">
-            {isEditMode
-              ? "Edit Profile"
-              : viewOnly
-              ? "View Profile"
-              : isEditing
-              ? "Edit Profile"
-              : "My Profile"}
+            {displayTitle}
           </h1>
         </div>
         <p className="text-muted-foreground">

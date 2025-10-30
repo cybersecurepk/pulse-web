@@ -48,6 +48,7 @@ export function UsersView() {
     try {
       setIsDeleting(true);
       await deleteUser(selectedUser.id).unwrap();
+      console.log(`User deleted successfully`);
     } catch (error) {
       console.error("Error deleting user:", error);
     } finally {

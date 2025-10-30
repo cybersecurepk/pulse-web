@@ -74,6 +74,10 @@ export type UserPayload = Omit<
   "id" | "createdAt" | "updatedAt" | "batchUsers"
 >;
 
+export type ApplicationStatusUpdatePayload = Pick<User, "applicationStatus">;
+
 export type UserResponse = User;
 export type UserListResponse = User[];
 export type UserDropdownResponse = UserDropdown[];
+
+
