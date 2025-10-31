@@ -58,40 +58,78 @@ export function CheckboxField({
                 control={control}
                 name={name}
                 render={({ field }) => {
-                  return (
-                    <FormItem
-                      key={option.id}
-                      className={cn(
-                        'flex flex-row items-center gap-2',
-                        direction === 'horizontal' && 'min-w-[150px] flex-1',
-                      )}
-                    >
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value?.includes(option.id)}
-                          onCheckedChange={checked => {
-                            return checked
-                              ? field.onChange([...(field.value || []), option.id])
-                              : field?.onChange(
-                                  field.value?.filter((value: string) => value !== option.id),
-                                );
-                          }}
-                          disabled={option.disabled}
-                          className="cursor-pointer"
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel className="cursor-pointer text-sm font-normal">
-                          {option.label}
-                        </FormLabel>
-                        {option.description && (
-                          <FormDescription className="text-xs">
-                            {option.description}
-                          </FormDescription>
+                  // Handle both single checkbox (boolean) and multiple checkboxes (array) cases
+                  const isSingleCheckbox = options.length === 1 && option.id === name;
+                  
+                  if (isSingleCheckbox) {
+                    // Single checkbox case (boolean value)
+                    return (
+                      <FormItem
+                        key={option.id}
+                        className={cn(
+                          'flex flex-row items-center gap-2',
+                          direction === 'horizontal' && 'min-w-[150px] flex-1',
                         )}
-                      </div>
-                    </FormItem>
-                  );
+                      >
+                        <FormControl>
+                          <Checkbox
+                            checked={!!field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={option.disabled}
+                            className="cursor-pointer"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="cursor-pointer text-sm font-normal">
+                            {option.label}
+                          </FormLabel>
+                          {option.description && (
+                            <FormDescription className="text-xs">
+                              {option.description}
+                            </FormDescription>
+                          )}
+                        </div>
+                      </FormItem>
+                    );
+                  } else {
+                    // Multiple checkboxes case (array value)
+                    const fieldValue = Array.isArray(field.value) ? field.value : [];
+                    
+                    return (
+                      <FormItem
+                        key={option.id}
+                        className={cn(
+                          'flex flex-row items-center gap-2',
+                          direction === 'horizontal' && 'min-w-[150px] flex-1',
+                        )}
+                      >
+                        <FormControl>
+                          <Checkbox
+                            checked={fieldValue.includes(option.id)}
+                            onCheckedChange={checked => {
+                              return checked
+                                ? field.onChange([...fieldValue, option.id])
+                                : field.onChange(
+                                    fieldValue.filter((value: string) => value !== option.id),
+                                  );
+                            }}
+                            disabled={option.disabled}
+                            className="cursor-pointer"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="cursor-pointer text-sm font-normal">
+                            {option.label}
+                          </FormLabel>
+                          {option.description && (
+                            <FormDescription className="text-xs">
+                              {option.description}
+                            </FormDescription>
+                          )}
+                        </div>
+                      </FormItem>
+                    );
+                  }
                 }}
               />
             ))}
