@@ -4,12 +4,26 @@ import { UseFormReturn } from "react-hook-form";
 import { RadioGroupField } from "@/components/core/hook-form/radio-field";
 import { CheckboxField } from "@/components/core/hook-form/checkbox-field";
 import { ApplicationFormData } from "../data/schema";
+import { useEffect } from "react";
 
 interface AvailabilityStepProps {
   form: UseFormReturn<ApplicationFormData>;
 }
 
 export function AvailabilityStep({ form }: AvailabilityStepProps) {
+  // Watch the area of interest fields to trigger validation when they change
+  const blueTeam = form.watch("blueTeam");
+  const redTeam = form.watch("redTeam");
+  const grc = form.watch("grc");
+
+  // Trigger validation when any of the area of interest fields change
+  useEffect(() => {
+    // Only trigger validation if at least one field has been touched
+    if (blueTeam !== false || redTeam !== false || grc !== false) {
+      form.trigger(["blueTeam", "redTeam", "grc"]);
+    }
+  }, [blueTeam, redTeam, grc, form]);
+
   return (
     <div className="space-y-6">
       <h3 className="text-lg font-semibold">Availability</h3>
@@ -21,6 +35,7 @@ export function AvailabilityStep({ form }: AvailabilityStepProps) {
             { value: "yes", label: "Yes" },
             { value: "no", label: "No" },
           ]}
+          required
         />
         <RadioGroupField
           name="weekends"
@@ -29,6 +44,7 @@ export function AvailabilityStep({ form }: AvailabilityStepProps) {
             { value: "yes", label: "Yes" },
             { value: "no", label: "No" },
           ]}
+          required
         />
         <RadioGroupField
           name="onsiteSessions"
@@ -37,6 +53,7 @@ export function AvailabilityStep({ form }: AvailabilityStepProps) {
             { value: "yes", label: "Yes" },
             { value: "no", label: "No" },
           ]}
+          required
         />
         <RadioGroupField
           name="remoteSessions"
@@ -45,10 +62,13 @@ export function AvailabilityStep({ form }: AvailabilityStepProps) {
             { value: "yes", label: "Yes" },
             { value: "no", label: "No" },
           ]}
+          required
         />
       </div>
       <div className="border-t pt-4 space-y-2">
-        <h3 className="text-lg font-semibold">Area of Interest</h3>
+        <h3 className="text-lg font-semibold">
+          Area of Interest <span className="text-destructive">*</span>
+        </h3>
         <CheckboxField
           name="blueTeam"
           options={[
@@ -57,6 +77,8 @@ export function AvailabilityStep({ form }: AvailabilityStepProps) {
               label: "Information & Cyber Security - Blue Team",
             },
           ]}
+          required
+          showErrorOnAll={true}
         />
         <CheckboxField
           name="redTeam"
@@ -66,6 +88,8 @@ export function AvailabilityStep({ form }: AvailabilityStepProps) {
               label: "Information & Cyber Security - Red Team",
             },
           ]}
+          required
+          showErrorOnAll={true}
         />
         <CheckboxField
           name="grc"
@@ -75,18 +99,23 @@ export function AvailabilityStep({ form }: AvailabilityStepProps) {
               label: "Governance, Risk and Compliance",
             },
           ]}
+          required
+          showErrorOnAll={true}
         />
       </div>
       <div className="border-t pt-4">
+        <h3 className="text-lg font-semibold mb-2">
+          Consent <span className="text-destructive">*</span>
+        </h3>
         <CheckboxField
           name="consent"
           options={[
             {
               id: "consent",
-              label:
-                "I consent to the use of my Personal Identifiable Information (PII)",
+              label: "I consent to the use of my Personal Identifiable Information (PII)",
             },
           ]}
+          required
         />
       </div>
     </div>

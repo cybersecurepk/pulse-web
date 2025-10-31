@@ -72,6 +72,28 @@ export function BatchesView() {
         <span className="text-muted-foreground">{getValue()}</span>
       ),
     }),
+    columnHelper.accessor("sessionType", {
+      header: "Session Type",
+      cell: ({ getValue }) => {
+        const sessionType = getValue();
+        const sessionTypeColors: Record<string, string> = {
+          remote: "bg-blue-100 text-blue-800",
+          onsite: "bg-green-100 text-green-800",
+        };
+        const sessionTypeLabel = sessionType 
+          ? sessionType.charAt(0).toUpperCase() + sessionType.slice(1)
+          : "N/A";
+        return (
+          <span
+            className={`rounded-sm px-2 py-1 text-sm font-semibold ${
+              sessionTypeColors[sessionType || ""] || "bg-gray-100 text-gray-800"
+            }`}
+          >
+            {sessionTypeLabel}
+          </span>
+        );
+      },
+    }),
     columnHelper.accessor("startDate", {
       header: "Start Date",
       cell: ({ getValue }) => (

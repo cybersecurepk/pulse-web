@@ -75,13 +75,20 @@ export function UsersView() {
       header: "Permanent City",
       cell: ({ getValue }) => getValue(),
     }),
-    columnHelper.accessor((row) => row.experiences, {
-      id: "experience",
-      header: "Experience",
-      cell: ({ getValue }) =>
-        getValue()
-          ?.map((experience) => experience.organization)
-          .join(", "),
+    columnHelper.accessor((row) => row.highestDegree, {
+      id: "highestDegree",
+      header: "Highest Degree",
+      cell: ({ getValue }) => getValue(),
+    }),
+    columnHelper.accessor((row) => row.totalExperience, {
+      id: "totalExperience",
+      header: "Total Experience",
+      cell: ({ row }) => {
+        const experience = row.original.totalExperience;
+        const unit = row.original.experienceUnit;
+        if (!experience) return "N/A";
+        return `${experience} ${unit || "years"}`;
+      },
     }),
     columnHelper.display({
       id: "actions",

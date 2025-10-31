@@ -26,7 +26,7 @@ import { BatchPayload } from "@/service/rtk-query/batches/batch-type";
 
 const batchSchema = z.object({
   name: z.string().min(3, { message: "Batch name must be at least 3 characters" }),
-  batchCode: z.string().min(3, { message: "Batch code must be at least 3 characters" }),
+  batchCode: z.string().optional(),
   description: z.string().optional(),
   location: z.string().min(1, { message: "Location is required" }),
   startDate: z.date({ message: "Start date is required" }),
@@ -34,6 +34,7 @@ const batchSchema = z.object({
   status: z.string().min(1, { message: "Status is required" }),
   isActive: z.boolean(),
   maxCapacity: z.number().min(1, { message: "Max capacity must be at least 1" }).max(1000),
+  sessionType: z.enum(["remote", "onsite"], { message: "Session type is required" }),
 });
 
 type BatchFormData = z.infer<typeof batchSchema>;
@@ -49,8 +50,12 @@ const locationOptions = [
 const statusOptions = [
   { value: "pending", label: "Pending" },
   { value: "ongoing", label: "Ongoing" },
-  { value: "completed", label: "Completed" },
-  { value: "cancelled", label: "Cancelled" },
+];
+
+// New options for session type
+const sessionTypeOptions = [
+  { value: "remote", label: "Remote" },
+  { value: "onsite", label: "Onsite" },
 ];
 
 export function BatchForm({ batchId }: { batchId?: string }) {
@@ -67,7 +72,7 @@ export function BatchForm({ batchId }: { batchId?: string }) {
     resolver: zodResolver(batchSchema),
     defaultValues: {
       name: "",
-      batchCode: "",
+      batchCode: "", // This is fine, will be handled in onSubmit
       description: "",
       location: "",
       startDate: new Date(),
@@ -75,6 +80,7 @@ export function BatchForm({ batchId }: { batchId?: string }) {
       status: "pending",
       isActive: true,
       maxCapacity: 30,
+      sessionType: "remote",
     },
   });
 
@@ -84,7 +90,7 @@ export function BatchForm({ batchId }: { batchId?: string }) {
     try {
       form.reset({
         name: batchData.name,
-        batchCode: batchData.batchCode,
+        batchCode: batchData.batchCode || "", // Handle undefined as empty string
         description: batchData.description || "",
         location: batchData.location,
         startDate: new Date(batchData.startDate),
@@ -92,6 +98,7 @@ export function BatchForm({ batchId }: { batchId?: string }) {
         status: batchData.status,
         isActive: batchData.isActive,
         maxCapacity: batchData.maxCapacity,
+        sessionType: batchData.sessionType || "remote",
       });
     } catch (error) {
       console.error("Error loading batch:", error);
@@ -102,7 +109,7 @@ export function BatchForm({ batchId }: { batchId?: string }) {
     try {
       const payload: BatchPayload = {
         name: values.name,
-        batchCode: values.batchCode,
+        batchCode: values.batchCode || undefined, // Handle empty string as undefined
         description: values.description || "",
         location: values.location,
         startDate: values.startDate.toISOString(),
@@ -110,6 +117,7 @@ export function BatchForm({ batchId }: { batchId?: string }) {
         status: values.status,
         isActive: values.isActive,
         maxCapacity: values.maxCapacity,
+        sessionType: values.sessionType,
       };
 
       if (isEditMode) {
@@ -119,11 +127,28 @@ export function BatchForm({ batchId }: { batchId?: string }) {
       }
 
       router.push("/admin/batches");
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Failed to ${isEditMode ? "update" : "create"} batch:`, error);
+      // Log more detailed error information
+      if (error?.data) {
+        console.error("API Error Details:", error.data);
+      }
+      
+      // Extract error message from different possible sources
+      let errorMessage = `Failed to ${isEditMode ? "update" : "create"} batch. Please try again.`;
+      if (error?.data?.message) {
+        errorMessage = error.data.message;
+      } else if (error?.data?.error) {
+        errorMessage = error.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
       form.setError("root", {
         type: "manual",
-        message: `Failed to ${isEditMode ? "update" : "create"} batch. Please try again.`,
+        message: errorMessage,
       });
     }
   };
@@ -175,11 +200,17 @@ export function BatchForm({ batchId }: { batchId?: string }) {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="space-y-4">
                 <Field.Text name="name" label="Batch Name" required />
-                <Field.Text name="batchCode" label="Batch Code" required />
+                <Field.Text name="batchCode" label="Batch Code" />
                 <Field.Select
                   name="location"
                   label="Location"
                   options={locationOptions}
+                  required
+                />
+                <Field.Select
+                  name="sessionType"
+                  label="Session Type"
+                  options={sessionTypeOptions}
                   required
                 />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

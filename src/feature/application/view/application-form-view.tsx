@@ -47,6 +47,9 @@ const AVAILABILITY_FIELDS: (keyof ApplicationFormData)[] = [
   "weekends",
   "onsiteSessions",
   "remoteSessions",
+  "blueTeam",
+  "redTeam",
+  "grc",
   "consent",
 ];
 

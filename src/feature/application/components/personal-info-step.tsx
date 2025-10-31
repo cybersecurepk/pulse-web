@@ -18,7 +18,7 @@ export function PersonalInfoStep({ form }: PersonalInfoStepProps) {
         <InputField
           name="name"
           type="text"
-          label="Name"
+          label="Full Name"
           placeholder="Enter your full name"
           required
         />
@@ -38,6 +38,7 @@ export function PersonalInfoStep({ form }: PersonalInfoStepProps) {
           { value: "female", label: "Female" },
           { value: "other", label: "Others" },
         ]}
+        required
       />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <InputField

@@ -85,7 +85,7 @@ function SingleDatePickerField({
                     !field.value && 'text-muted-foreground',
                   )}
                 >
-                  {field.value ? format(field.value, 'PPP') : <span>DD-MM-YYYY</span>}
+                  {field.value ? format(field.value, 'MM/dd/yyyy') : <span>MM/DD/YYYY</span>}
                   <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                 </Button>
               </FormControl>
@@ -144,11 +144,11 @@ function DateRangePickerField({
 
         const displayText =
           from && to
-            ? `${format(from, 'MMM d')} - ${format(to, 'MMM d, yyyy')}`
+            ? `${format(from, 'MM/dd/yyyy')} - ${format(to, 'MM/dd/yyyy')}`
             : from
-              ? `From ${format(from, 'MMM d, yyyy')}`
+              ? `From ${format(from, 'MM/dd/yyyy')}`
               : to
-                ? `Until ${format(to, 'MMM d, yyyy')}`
+                ? `Until ${format(to, 'MM/dd/yyyy')}`
                 : placeholder;
 
         return (
@@ -352,7 +352,7 @@ function MultipleDatePickerField({
                     key={index}
                     className="bg-secondary flex items-center gap-1 rounded-md px-2 py-1 text-sm"
                   >
-                    <span>{format(date, 'MMM d, yyyy')}</span>
+                    <span>{format(date, 'MM/dd/yyyy')}</span>
                     <Button
                       type="button"
                       variant="ghost"

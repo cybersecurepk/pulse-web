@@ -55,6 +55,24 @@ export const applicationFormSchema = z.object({
   consent: z.boolean().refine((val) => val === true, {
     message: "You must consent to the use of PII",
   }),
-})
+}).refine(
+  (data) => data.blueTeam || data.redTeam || data.grc,
+  {
+    message: "Please select at least one area of interest",
+    path: ["blueTeam"],
+  }
+).refine(
+  (data) => data.blueTeam || data.redTeam || data.grc,
+  {
+    message: "Please select at least one area of interest",
+    path: ["redTeam"],
+  }
+).refine(
+  (data) => data.blueTeam || data.redTeam || data.grc,
+  {
+    message: "Please select at least one area of interest",
+    path: ["grc"],
+  }
+)
 
 export type ApplicationFormData = z.infer<typeof applicationFormSchema>
