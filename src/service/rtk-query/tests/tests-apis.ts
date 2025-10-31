@@ -1,5 +1,5 @@
 import { appApi } from "@/service/rtk-base-api-service";
-import { TestPayload, TestResponse } from "./tests-type";
+import { TestPayload, TestResponse, TestScreenshot } from "./tests-type";
 
 const testsApi = appApi
   .enhanceEndpoints({
@@ -64,6 +64,21 @@ const testsApi = appApi
         }),
         invalidatesTags: [{ type: "Tests", id: "tests-list" }],
       }),
+      addTestScreenshot: build.mutation<TestScreenshot, { testId: string; imageUrl: string; description?: string }>({
+        query: ({ testId, ...payload }) => ({
+          url: `/tests/${testId}/screenshots`,
+          method: "POST",
+          body: payload,
+        }),
+        invalidatesTags: (result, error, { testId }) => [{ type: "Tests", testId }],
+      }),
+      getTestScreenshots: build.query<TestScreenshot[], string>({
+        query: (testId) => ({
+          url: `/tests/${testId}/screenshots`,
+          method: "GET",
+        }),
+        providesTags: (result, error, testId) => [{ type: "Tests", testId }],
+      }),
     }),
   });
 
@@ -75,4 +90,6 @@ export const {
   useSaveTestMutation,
   useUpdateTestMutation,
   useDeleteTestMutation,
+  useAddTestScreenshotMutation,
+  useGetTestScreenshotsQuery,
 } = testsApi;

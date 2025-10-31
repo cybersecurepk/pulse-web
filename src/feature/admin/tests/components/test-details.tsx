@@ -11,11 +11,46 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Check } from "lucide-react";
 import Link from "next/link";
-import { useGetTestByIdQuery } from "@/service/rtk-query/tests/tests-apis";
+import { useGetTestByIdQuery, useAddTestScreenshotMutation } from "@/service/rtk-query/tests/tests-apis";
 import { TestResponse } from "@/service/rtk-query/tests/tests-type";
+import html2canvas from "html2canvas";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 export function TestDetails({ params }: { params: { id: string } }) {
   const { data: test, isLoading: loading } = useGetTestByIdQuery(params.id);
+  const [addScreenshot] = useAddTestScreenshotMutation();
+  const [hasCaptured, setHasCaptured] = useState(false);
+
+  // Capture screenshot when the test data is loaded
+  useEffect(() => {
+    if (test && !hasCaptured) {
+      setHasCaptured(true);
+      captureScreenshot();
+    }
+  }, [test, hasCaptured]);
+
+  const captureScreenshot = async () => {
+    try {
+      // Small delay to ensure page is fully rendered
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Capture the entire test details page
+      const canvas = await html2canvas(document.body);
+      const imageUrl = canvas.toDataURL("image/png");
+      
+      // Save to database
+      await addScreenshot({
+        testId: test!.id,
+        imageUrl,
+        description: `Screenshot of test ${test!.title} taken on ${new Date().toLocaleString()}`
+      }).unwrap();
+      
+      console.log("Screenshot captured and saved successfully!");
+    } catch (error) {
+      console.error("Screenshot capture failed:", error);
+    }
+  };
 
   if (loading) {
     return (
@@ -168,6 +203,33 @@ export function TestDetails({ params }: { params: { id: string } }) {
           </div>
         </CardContent>
       </Card>
+
+      {test.screenshots && test.screenshots.length > 0 && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Screenshots</CardTitle>
+            <CardDescription>
+              Screenshots captured for this test
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {test.screenshots.map((screenshot) => (
+                <div key={screenshot.id} className="border rounded-lg overflow-hidden">
+                  <img 
+                    src={screenshot.imageUrl} 
+                    alt={screenshot.description || "Test screenshot"} 
+                    className="w-full h-auto max-h-40 object-cover"
+                  />
+                  <div className="p-2 bg-muted text-xs text-muted-foreground">
+                    {new Date(screenshot.createdAt).toLocaleString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

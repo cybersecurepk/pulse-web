@@ -34,29 +34,25 @@ export function UsersView() {
     router.push(`/admin/users/view/${userId}`);
   };
 
-  const handleEdit = (userId: string) => {
-    router.push(`/admin/users/edit/${userId}`);
-  };
+  // const handleDeleteClick = (user: User) => {
+  //   setSelectedUser(user);
+  //   setDeleteDialogOpen(true);
+  // };
 
-  const handleDeleteClick = (user: User) => {
-    setSelectedUser(user);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!selectedUser) return;
-    try {
-      setIsDeleting(true);
-      await deleteUser(selectedUser.id).unwrap();
-      console.log(`User deleted successfully`);
-    } catch (error) {
-      console.error("Error deleting user:", error);
-    } finally {
-      setIsDeleting(false);
-      setDeleteDialogOpen(false);
-      setSelectedUser(null);
-    }
-  };
+  // const handleConfirmDelete = async () => {
+  //   if (!selectedUser) return;
+  //   try {
+  //     setIsDeleting(true);
+  //     await deleteUser(selectedUser.id).unwrap();
+  //     console.log(`User deleted successfully`);
+  //   } catch (error) {
+  //     console.error("Error deleting user:", error);
+  //   } finally {
+  //     setIsDeleting(false);
+  //     setDeleteDialogOpen(false);
+  //     setSelectedUser(null);
+  //   }
+  // };
 
   const columns = [
     columnHelper.accessor((row) => row.name, {
@@ -103,16 +99,8 @@ export function UsersView() {
             >
               <Eye className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              title="Edit"
-              onClick={() => handleEdit(user.id)}
-              className="h-8 w-8"
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-            <Button
+          
+            {/* <Button
               variant="ghost"
               size="icon"
               title="Delete"
@@ -120,7 +108,7 @@ export function UsersView() {
               className="h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700"
             >
               <Trash2 className="h-4 w-4" />
-            </Button>
+            </Button> */}
           </div>
         );
       },
@@ -146,7 +134,7 @@ export function UsersView() {
           heading="Users"
         />
       </div>
-      <ConfirmationDialog
+      {/* <ConfirmationDialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleConfirmDelete}
@@ -156,7 +144,7 @@ export function UsersView() {
             ? `Are you sure you want to delete the user "${selectedUser.name}"?`
             : undefined
         }
-      />
+      /> */}
     </div>
   );
 }
