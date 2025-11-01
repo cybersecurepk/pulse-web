@@ -9,11 +9,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, Check, Camera } from "lucide-react";
 import Link from "next/link";
-import { useGetTestByIdQuery, useAddTestScreenshotMutation } from "@/service/rtk-query/tests/tests-apis";
+import {
+  useGetTestByIdQuery,
+  useAddTestScreenshotMutation,
+} from "@/service/rtk-query/tests/tests-apis";
 import { TestResponse } from "@/service/rtk-query/tests/tests-type";
 import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -21,34 +25,91 @@ export function TestDetails({ params }: { params: { id: string } }) {
   const { data: test, isLoading: loading } = useGetTestByIdQuery(params.id);
   const [addScreenshot] = useAddTestScreenshotMutation();
   const [hasCaptured, setHasCaptured] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
 
   // Capture screenshot when the test data is loaded
   useEffect(() => {
     if (test && !hasCaptured) {
+      console.log("Test data loaded, scheduling screenshot capture...");
       setHasCaptured(true);
-      captureScreenshot();
+      // Add a longer delay to ensure all content is rendered
+      const timer = setTimeout(() => {
+        captureScreenshot();
+      }, 3000);
+
+      return () => clearTimeout(timer);
     }
   }, [test, hasCaptured]);
 
   const captureScreenshot = async () => {
+    if (isCapturing) return;
+
+    setIsCapturing(true);
     try {
-      // Small delay to ensure page is fully rendered
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Capture the entire test details page
-      const canvas = await html2canvas(document.body);
-      const imageUrl = canvas.toDataURL("image/png");
-      
-      // Save to database
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const contentElement = document.querySelector(
+        ".container.mx-auto.p-6.max-w-4xl"
+      ) as HTMLElement;
+      if (!contentElement) throw new Error("Screenshot element not found");
+
+      // Capture with lower quality and resolution to reduce size
+      const imageDataUrl = await toPng(contentElement, {
+        quality: 0.6,
+        pixelRatio: 1,
+        backgroundColor: "#ffffff",
+        cacheBust: true,
+        filter: (node) => {
+          return true;
+        },
+      });
+
+      // Convert to blob and compress further if needed
+      const response = await fetch(imageDataUrl);
+      const blob = await response.blob();
+
+      // Check size (in MB)
+      const sizeMB = blob.size / (1024 * 1024);
+      console.log(`Screenshot size: ${sizeMB.toFixed(2)} MB`);
+
+      // If still too large, compress more
+      let finalImageUrl = imageDataUrl;
+      if (sizeMB > 2) {
+        // Create a canvas to compress the image further
+        const img = new Image();
+        await new Promise((resolve) => {
+          img.onload = resolve;
+          img.src = imageDataUrl;
+        });
+
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d")!;
+
+        // Reduce dimensions if too large
+        const maxWidth = 1200;
+        const scale = Math.min(1, maxWidth / img.width);
+
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        finalImageUrl = canvas.toDataURL("image/jpeg", 0.5);
+      }
+
       await addScreenshot({
-        testId: test!.id,
-        imageUrl,
-        description: `Screenshot of test ${test!.title} taken on ${new Date().toLocaleString()}`
+        testId: params.id,
+        imageUrl: finalImageUrl,
+        description: `Screenshot of test ${
+          test!.title
+        } taken on ${new Date().toLocaleString()}`,
       }).unwrap();
-      
-      console.log("Screenshot captured and saved successfully!");
-    } catch (error) {
-      console.error("Screenshot capture failed:", error);
+
+      toast.success("Screenshot captured successfully!");
+    } catch (err) {
+      console.error("Screenshot capture failed:", err);
+      toast.error("Failed to capture screenshot");
+    } finally {
+      setIsCapturing(false);
     }
   };
 
@@ -77,15 +138,30 @@ export function TestDetails({ params }: { params: { id: string } }) {
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
           <Link href="/admin/tests">
-            <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 cursor-pointer"
+            >
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
           <h1 className="text-3xl font-bold tracking-tight">View Test</h1>
         </div>
-        <p className="text-muted-foreground">
-          Review test details and questions
-        </p>
+        <div className="flex justify-between items-center">
+          <p className="text-muted-foreground">
+            Review test details and questions
+          </p>
+          <Button
+            onClick={captureScreenshot}
+            disabled={isCapturing}
+            variant="outline"
+            size="sm"
+          >
+            <Camera className="h-4 w-4 mr-2" />
+            {isCapturing ? "Capturing..." : "Capture Screenshot"}
+          </Button>
+        </div>
       </div>
 
       <Card className="mb-6">
@@ -97,9 +173,13 @@ export function TestDetails({ params }: { params: { id: string } }) {
                 {test.description}
               </CardDescription>
             </div>
-            <Badge 
+            <Badge
               variant={test.isActive ? "default" : "secondary"}
-              className={test.isActive ? "bg-green-100 text-green-800 hover:bg-green-100" : ""}
+              className={
+                test.isActive
+                  ? "bg-green-100 text-green-800 hover:bg-green-100"
+                  : ""
+              }
             >
               {test.isActive ? "Active" : "Inactive"}
             </Badge>
@@ -133,8 +213,8 @@ export function TestDetails({ params }: { params: { id: string } }) {
         <CardContent>
           <div className="space-y-6">
             {test.questions?.map((question, index) => (
-              <div 
-                key={question.id} 
+              <div
+                key={question.id}
                 className="border rounded-lg p-4 hover:bg-muted/50 transition-colors"
               >
                 <div className="flex justify-between items-start mb-3">
@@ -152,11 +232,11 @@ export function TestDetails({ params }: { params: { id: string } }) {
                     </div>
                   )}
                 </div>
-                
+
                 <p className="text-gray-700 mb-4 leading-relaxed">
                   {question.text}
                 </p>
-                
+
                 <div className="space-y-2">
                   {question.options?.map((option, optIndex) => (
                     <div
@@ -188,8 +268,8 @@ export function TestDetails({ params }: { params: { id: string } }) {
                         {option.text}
                       </span>
                       {option.isCorrect && (
-                        <Badge 
-                          variant="secondary" 
+                        <Badge
+                          variant="secondary"
                           className="bg-green-100 text-green-800 hover:bg-green-100"
                         >
                           Correct
@@ -215,10 +295,13 @@ export function TestDetails({ params }: { params: { id: string } }) {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {test.screenshots.map((screenshot) => (
-                <div key={screenshot.id} className="border rounded-lg overflow-hidden">
-                  <img 
-                    src={screenshot.imageUrl} 
-                    alt={screenshot.description || "Test screenshot"} 
+                <div
+                  key={screenshot.id}
+                  className="border rounded-lg overflow-hidden"
+                >
+                  <img
+                    src={screenshot.imageUrl}
+                    alt={screenshot.description || "Test screenshot"}
                     className="w-full h-auto max-h-40 object-cover"
                   />
                   <div className="p-2 bg-muted text-xs text-muted-foreground">
