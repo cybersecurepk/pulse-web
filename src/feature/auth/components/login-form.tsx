@@ -47,6 +47,10 @@ export function LoginForm({
     setPasswordVisibility(!passwordVisibility);
   };
 
+  const handleGoogleSignIn = () => {
+    window.location.href = "http://localhost:3000/auth/google/login";
+  };
+
   return (
     <div className={cn("max-w-lg w-full space-y-8", className)} {...props}>
       <div className="bg-white p-8 rounded-lg shadow-md border border-gray-200">
@@ -119,7 +123,7 @@ export function LoginForm({
               type="button"
               variant="outline"
               className="w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 transition duration-150 ease-in-out"
-              onClick={() => alert("Google Sign-In clicked!")}
+              onClick={handleGoogleSignIn}
             >
               <img
                 src="https://www.svgrepo.com/show/475656/google-color.svg"
