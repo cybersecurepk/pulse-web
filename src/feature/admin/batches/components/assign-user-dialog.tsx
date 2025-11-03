@@ -104,7 +104,7 @@ export function AssignUserDialog({
   const userOptions =
     usersData?.map((user) => ({
       value: user.id,
-      label: `${user.firstName} ${user.lastName} (${user.email})`,
+      label: `${user.name} (${user.email})`,
     })) || [];
 
   const isLoading = isSaving || isUpdating;

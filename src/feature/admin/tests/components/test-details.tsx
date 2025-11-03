@@ -18,7 +18,7 @@ import {
 import { TestResponse } from "@/service/rtk-query/tests/tests-type";
 import html2canvas from "html2canvas";
 import { toPng } from "html-to-image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
 export function TestDetails({ params }: { params: { id: string } }) {
@@ -27,22 +27,8 @@ export function TestDetails({ params }: { params: { id: string } }) {
   const [hasCaptured, setHasCaptured] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
 
-  // Capture screenshot when the test data is loaded
-  useEffect(() => {
-    if (test && !hasCaptured) {
-      console.log("Test data loaded, scheduling screenshot capture...");
-      setHasCaptured(true);
-      // Add a longer delay to ensure all content is rendered
-      const timer = setTimeout(() => {
-        captureScreenshot();
-      }, 3000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [test, hasCaptured]);
-
-  const captureScreenshot = async () => {
-    if (isCapturing) return;
+  const captureScreenshot = useCallback(async () => {
+    if (isCapturing || !test) return;
 
     setIsCapturing(true);
     try {
@@ -100,7 +86,7 @@ export function TestDetails({ params }: { params: { id: string } }) {
         testId: params.id,
         imageUrl: finalImageUrl,
         description: `Screenshot of test ${
-          test!.title
+          test.title
         } taken on ${new Date().toLocaleString()}`,
       }).unwrap();
 
@@ -111,7 +97,21 @@ export function TestDetails({ params }: { params: { id: string } }) {
     } finally {
       setIsCapturing(false);
     }
-  };
+  }, [isCapturing, addScreenshot, params.id, test]);
+
+  // Capture screenshot when the test data is loaded
+  useEffect(() => {
+    if (test && !hasCaptured) {
+      console.log("Test data loaded, scheduling screenshot capture...");
+      setHasCaptured(true);
+      // Add a longer delay to ensure all content is rendered
+      const timer = setTimeout(() => {
+        captureScreenshot();
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [test, hasCaptured, captureScreenshot]);
 
   if (loading) {
     return (

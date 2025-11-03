@@ -9,57 +9,20 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Clock, CheckCircle, Camera } from "lucide-react";
+import { BookOpen, Clock, CheckCircle } from "lucide-react";
 import Link from "next/link";
-import { dummyTests } from "@/feature/admin/tests/data/dummy-tests";
+import { TestResponse } from "@/service/rtk-query/tests/tests-type";
 
-export function ActiveTestsView() {
-  // Filter for active tests only
-  const activeTests = dummyTests.filter(test => test.isActive);
+interface ActiveTestsViewProps {
+  tests?: TestResponse[];
+}
+
+export function ActiveTestsView({ tests }: ActiveTestsViewProps) {
+  // If no tests are provided, use empty array
+  const activeTests = tests || [];
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">My Tests</h1>
-        <p className="text-muted-foreground">
-          View and manage your active tests
-        </p>
-      </div>
-
-      {/* Proctoring Demo Card */}
-      <Card className="border-primary">
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle className="text-lg">Proctoring Demo</CardTitle>
-              <CardDescription className="mt-1">
-                Test the screen capture functionality
-              </CardDescription>
-            </div>
-            <Badge variant="default">Demo</Badge>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center text-sm text-muted-foreground">
-              <Camera className="h-4 w-4 mr-2" />
-              <span>Screenshots taken on each question</span>
-            </div>
-            <div className="flex items-center text-sm text-muted-foreground">
-              <BookOpen className="h-4 w-4 mr-2" />
-              <span>Demo implementation with html2canvas</span>
-            </div>
-          </div>
-          <div className="mt-4 flex gap-2">
-            <Button asChild size="sm" className="flex-1">
-              <Link href="/user/tests/proctoring">
-                Try Proctoring Demo
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
       {activeTests.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
@@ -77,7 +40,7 @@ export function ActiveTestsView() {
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-lg">{test.testName}</CardTitle>
+                    <CardTitle className="text-lg">{test.title}</CardTitle>
                     <CardDescription className="mt-1">
                       {test.description}
                     </CardDescription>
@@ -89,7 +52,7 @@ export function ActiveTestsView() {
                 <div className="space-y-3">
                   <div className="flex items-center text-sm text-muted-foreground">
                     <BookOpen className="h-4 w-4 mr-2" />
-                    <span>{test.totalQuestions} questions</span>
+                    <span>{(test.questions && test.questions.length) || 0} questions</span>
                   </div>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Clock className="h-4 w-4 mr-2" />
@@ -97,7 +60,7 @@ export function ActiveTestsView() {
                   </div>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <CheckCircle className="h-4 w-4 mr-2" />
-                    <span>Pass score: {test.passCriteria}%</span>
+                    <span>Pass score: {test.passingCriteria}%</span>
                   </div>
                 </div>
                 <div className="mt-4 flex gap-2">

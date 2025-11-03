@@ -21,6 +21,17 @@ const batchesApi = appApi
         }),
         providesTags: [{ type: "Batches", id: "batches-list" }],
       }),
+      // New endpoint to get batches by user ID
+      getBatchesByUserId: build.query<BatchResponse[], string>({
+        query: (userId) => ({
+          url: `/batches/list`,
+          method: "GET",
+          params: { userId },
+        }),
+        providesTags: (result, error, userId) => [
+          { type: "Batches", id: `user-${userId}` },
+        ],
+      }),
       saveBatch: build.mutation<BatchResponse, BatchPayload>({
         query: (payload) => ({
           url: `/batches/save`,
@@ -56,8 +67,8 @@ const batchesApi = appApi
 export const {
   useGetBatchByIdQuery,
   useGetAllBatchesQuery,
+  useGetBatchesByUserIdQuery, // New hook export
   useSaveBatchMutation,
   useUpdateBatchMutation,
   useDeleteBatchMutation,
 } = batchesApi;
-

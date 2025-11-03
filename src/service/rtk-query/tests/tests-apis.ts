@@ -93,3 +93,13 @@ export const {
   useAddTestScreenshotMutation,
   useGetTestScreenshotsQuery,
 } = testsApi;
+
+//to get tests for users
+// // 1. Get user's batch assignments
+// const { data: batchUsers } = useGetBatchUsersByUserIdQuery(userId);
+
+// // 2. Extract batch IDs
+// const batchIds = batchUsers?.map(bu => bu.batch.id) || [];
+
+// // 3. For each batch, get the assigned tests
+// // This would require calling useGetBatchTestsByBatchIdQuery for each batchId
