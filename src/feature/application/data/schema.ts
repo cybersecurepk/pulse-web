@@ -53,7 +53,7 @@ export const applicationFormSchema = z.object({
   redTeam: z.boolean(),
   grc: z.boolean(),
   consent: z.boolean().refine((val) => val === true, {
-    message: "You must consent to the use of PII",
+    message: "Please accept the consent agreement to submit your application",
   }),
 }).refine(
   (data) => data.blueTeam || data.redTeam || data.grc,

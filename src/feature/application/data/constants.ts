@@ -142,3 +142,88 @@ export const CITIES = [
 export const YEARS_OF_EDUCATION = ["12", "14", "16", "18"] as const
 
 export const DEGREES = ["HSSC", "A-Levels", "BS", "BSc", "MS", "MSc"] as const
+
+export const CONSENT_SECTIONS = [
+  {
+    title: "Notice and Consent for Personal Data (PII) Collection",
+    subtitle: "Cybersecure Program",
+    centered: true,
+  },
+  {
+    number: 1,
+    title: "Purpose of this Notice",
+    content: `YOTTABYTE is committed to protecting the privacy of all individuals applying to participate in our "Cybersecure" program. This notice explains how your personal data (Personally Identifiable Information – PII) will be collected, used, disclosed, and stored in accordance with applicable data protection and privacy laws as well as the international standard ISO/IEC 27701 Privacy Information Management requirements.`,
+  },
+  {
+    number: 2,
+    title: "Purpose of Collection",
+    content: "We collect and process your personal data exclusively for activities related to your participation in the Cybersecure program. These activities include:",
+    items: [
+      "Managing applications and verifying eligibility.",
+      "Shortlisting candidates and maintaining communication.",
+      "Coordinating training sessions (both virtual and on-site).",
+      "Providing access to relevant platforms and program resources.",
+      "Issuing certificates or credentials upon successful completion.",
+      "Retaining information for potential future employment opportunities with YOTTABYTE and/or third parties used by YOTTABYTE.",
+      "Reporting to the stakeholders.",
+      "For any additional educational and training initiatives.",
+    ],
+  },
+  {
+    number: 3,
+    title: "Types of Personal Data Collected",
+    content: "The following personal data is collected as part of the application form by YOTTABYTE:",
+    items: [
+      "Full name, Gender, National Identification Number or Passport number",
+      "Contact details including Phone number, Email, City of residence (Current and Permanent)",
+      "Experience including Current/ Last Organization and Designation",
+    ],
+  },
+  {
+    number: 4,
+    title: "Legal Basis for Processing",
+    content: "Your personal data is processed based on your explicit consent, which you provide when submitting your application. You may withdraw your consent at any time by contacting us through the details provided below. However, please note that any data that we are legally required to retain will continue to be stored in accordance with applicable laws and regulations.",
+  },
+  {
+    number: 5,
+    title: "Data Sharing and Disclosure",
+    content: "Your personal data may be shared, on a need-to-know basis, with the following third parties for the purpose of managing and delivering the Bootcamp:",
+    items: [
+      "Partner organizations including 01Hire Technologies Private Limited, which provides technology and platform support for application processing and assessments.",
+      "Trainers involved in program delivery.",
+      "Certification or credentialing partners i.e., APNIC Foundation.",
+      "All third parties are bound by contractual obligations to handle your personal data securely and only for authorized purposes.",
+    ],
+  },
+  {
+    number: 6,
+    title: "Data Storage and Security",
+    content: "All data is stored securely with YOTTABYTE and access is strictly controlled and limited to authorized personnel only.\n\nWe implement appropriate technical and organizational security measures that are compliant with ISO/IEC 27701, including encryption, access control, and activity monitoring, to ensure your data remains protected against unauthorized access, alteration, or disclosure.",
+  },
+  {
+    number: 7,
+    title: "Data Retention",
+    content: "Your personal data will be retained only for as long as necessary (Minimum Five years) to fulfill the purposes stated above or as required by applicable law. Data related to unsuccessful applicants may be deleted or anonymized within a defined retention period after the selection process concludes.",
+  },
+  {
+    number: 8,
+    title: "Your Rights",
+    content: "You have the right to:",
+    items: [
+      "Request access to your personal data",
+      "Request correction or deletion of inaccurate information",
+      "Withdraw your consent at any time",
+      "Lodge a complaint with the designated Data Protection Officer (DPO)",
+    ],
+  },
+  {
+    number: 9,
+    title: "Contact Information",
+    content: "If you have any questions or wish to exercise your data protection rights, please contact:\n\nDPO@Yottabyte.ae",
+  },
+  {
+    number: 10,
+    title: "Consent Declaration",
+    content: "By submitting your application for the Cybersecure Pakistan Bootcamp at Yottabyte Pulse Platform, you acknowledge that you have read and understood this notice and consent to the collection, use, and processing of your personal data for the purposes stated above.",
+  },
+]
