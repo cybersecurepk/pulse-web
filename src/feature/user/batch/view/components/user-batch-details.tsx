@@ -43,12 +43,13 @@ export function UserBatchDetails({ batchId }: UserBatchDetailsProps) {
   // Status badge styling
   const statusColors: Record<string, string> = {
     pending: "bg-blue-100 text-blue-800",
-    ongoing: "bg-green-100 text-green-800",
+    on_going: "bg-green-100 text-green-800",
     completed: "bg-gray-100 text-gray-800",
     cancelled: "bg-red-100 text-red-800",
   };
 
-  const statusLabel = batch.status.charAt(0).toUpperCase() + batch.status.slice(1);
+  const statusLabel = batch.status === 'on_going' ? 'On Going' : 
+                     batch.status.charAt(0).toUpperCase() + batch.status.slice(1);
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">

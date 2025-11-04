@@ -305,6 +305,7 @@ export function TestForm({ testId }: TestFormProps) {
   };
 
   const onSubmit = async (data: TestFormData) => {
+    console.log("Form submitted with data:", data);
     try {
       const payload: TestPayload = {
         testCode: data.testCode,
@@ -327,14 +328,19 @@ export function TestForm({ testId }: TestFormProps) {
         })),
       };
 
-      console.log(`${isEditMode ? "Updating" : "Creating"} test:`, payload);
+      console.log(`${isEditMode ? "Updating" : "Creating"} test with payload:`, payload);
       
       if (isEditMode) {
-        await updateTest({ id: testId!, payload }).unwrap();
+        console.log("Calling updateTest with id:", testId);
+        const result = await updateTest({ id: testId!, payload }).unwrap();
+        console.log("Update result:", result);
       } else {
-        await saveTest(payload).unwrap();
+        console.log("Calling saveTest");
+        const result = await saveTest(payload).unwrap();
+        console.log("Save result:", result);
       }
       
+      console.log("Redirecting to /admin/tests");
       router.push("/admin/tests");
     } catch (err: unknown) {
       console.error(`Failed to ${isEditMode ? "update" : "create"} test:`, err);
@@ -422,7 +428,7 @@ export function TestForm({ testId }: TestFormProps) {
                 <div className="flex gap-3 pt-4">
                   <Button
                     type="submit"
-                    disabled={isLoading || questions.length === 0}
+                    disabled={isLoading}
                     className="flex-1 disabled:bg-gray-300 disabled:text-gray-500"
                   >
                     {isLoading ? (
