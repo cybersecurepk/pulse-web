@@ -48,7 +48,7 @@ const adminNavItems: NavItem[] = [
     icon: LayoutDashboard,
   },
   {
-    title: "Applicants",
+    title: "Applications",
     url: "/admin/applications",
     icon: UserCheck,
   },

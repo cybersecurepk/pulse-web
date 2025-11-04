@@ -4,6 +4,7 @@ import {
   UserResponse,
   UserListResponse,
   UserDropdownResponse,
+  ApplicationStatusUpdatePayload,
 } from "./users-type";
 
 const usersApi = appApi
@@ -51,9 +52,12 @@ const usersApi = appApi
           { type: "Users", id: "users-dropdown" },
         ],
       }),
-      updateUser: build.mutation<UserResponse, UserPayload>({
-        query: ({ id, ...payload }) => ({
-          url: `/users/${id}`,
+      updateUser: build.mutation<
+        UserResponse,
+        { id: string; payload: UserPayload | ApplicationStatusUpdatePayload }
+      >({
+        query: ({ id, payload }) => ({
+          url: `/users/update/${id}`,
           method: "PUT",
           body: payload,
         }),
@@ -64,7 +68,7 @@ const usersApi = appApi
       }),
       deleteUser: build.mutation<{ id: string }, string>({
         query: (id) => ({
-          url: `/users/${id}`,
+          url: `/users/delete/${id}`,
           method: "DELETE",
         }),
         invalidatesTags: () => [

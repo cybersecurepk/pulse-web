@@ -1,10 +1,11 @@
 "use client";
 
 import React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ArrowLeft } from "lucide-react";
+import { format } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -32,23 +33,63 @@ import {
   Save,
   X,
   Trash2,
+  GraduationCap,
+  Briefcase,
+  PlusIcon,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { DatePickerField } from "@/components/core/hook-form/date-picker-field";
 
-// Validation schema
+// Import constants and types from the application form
+import { CITIES } from "@/feature/application/data/constants";
+import { YEARS_OF_EDUCATION, DEGREES } from "@/feature/application/data/constants";
+
+// Validation schema - extended to include application form fields (excluding availability and interests)
 const profileSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  userName: z.string().min(1, "Username is required"),
-  dateOfBirth: z.date(),
-  country: z.string().min(1, "Country is required"),
-  state: z.string().min(1, "State is required"),
-  city: z.string().min(1, "City is required"),
-  street: z.string().min(1, "Street is required"),
-  zip: z.string().min(1, "ZIP code is required"),
-  phoneNumber: z.string().min(1, "Phone number is required"),
-  primaryEmail: z.string().email("Invalid email address"),
-  secondaryEmail: z.string().optional(),
   profileImage: z.string().optional(),
+  
+  // Application form fields - Personal Information
+  name: z.string().min(1, "Name is required"),
+  gender: z.enum(["male", "female", "other"], {
+    message: "Gender is required",
+  }),
+  primaryPhone: z.string().min(1, "Primary phone is required"),
+  secondaryPhone: z.string().optional(),
+  currentCity: z.string().min(1, "Current city is required"),
+  permanentCity: z.string().min(1, "Permanent city is required"),
+  email: z.string().email("Invalid email address"),
+  
+  // Application form fields - Education
+  yearsOfEducation: z.enum(["12", "14", "16", "18"], {
+    message: "Years of education is required",
+  }),
+  highestDegree: z.enum(["HSSC", "A-Levels", "BS", "BSc", "MS", "MSc"], {
+    message: "Highest degree is required",
+  }),
+  majors: z.string().min(1, "Majors is required"),
+  university: z.string().min(1, "University is required"),
+  yearOfCompletion: z.string().min(1, "Year of completion is required"),
+  
+  // Application form fields - Experience
+  totalExperience: z.string().min(1, "Total experience is required"),
+  experienceUnit: z.enum(["months", "years"], {
+    message: "Experience unit is required",
+  }),
+  experiences: z.array(z.object({
+    organization: z.string().optional(),
+    designation: z.string().optional(),
+    from: z.date().optional(),
+    to: z.date().optional(),
+  })).optional(),
 });
 
 export type ProfileFormData = z.infer<typeof profileSchema>;
@@ -107,19 +148,32 @@ export function ProfileFormComponent({
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      firstName: initialData?.firstName || "",
-      lastName: initialData?.lastName || "",
-      userName: initialData?.userName || "",
-      dateOfBirth: initialData?.dateOfBirth || new Date(),
-      country: initialData?.country || "",
-      state: initialData?.state || "",
-      city: initialData?.city || "",
-      street: initialData?.street || "",
-      zip: initialData?.zip || "",
-      phoneNumber: initialData?.phoneNumber || "",
-      primaryEmail: initialData?.primaryEmail || "",
-      secondaryEmail: initialData?.secondaryEmail || "",
+      // Application form fields - Personal Information
+      name: initialData?.name || "",
+      gender: initialData?.gender || undefined,
+      primaryPhone: initialData?.primaryPhone || "",
+      secondaryPhone: initialData?.secondaryPhone || "",
+      currentCity: initialData?.currentCity || "",
+      permanentCity: initialData?.permanentCity || "",
+      email: initialData?.email || "",
+      
+      // Application form fields - Education
+      yearsOfEducation: initialData?.yearsOfEducation || undefined,
+      highestDegree: initialData?.highestDegree || undefined,
+      majors: initialData?.majors || "",
+      university: initialData?.university || "",
+      yearOfCompletion: initialData?.yearOfCompletion || "",
+      
+      // Application form fields - Experience
+      totalExperience: initialData?.totalExperience || "",
+      experienceUnit: initialData?.experienceUnit || "years",
+      experiences: initialData?.experiences || [],
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "experiences",
   });
 
   // Load user data if editing and we don't have initialData
@@ -172,6 +226,13 @@ export function ProfileFormComponent({
   const profileData = form.watch();
   const showEditControls = isEditing || isEditMode;
 
+  // Determine the title to display
+  const displayTitle = title || 
+    (isEditMode ? "Edit Profile" : 
+     viewOnly ? "View Profile" : 
+     isEditing ? "Edit Profile" : 
+     "My Profile");
+
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       {/* Header */}
@@ -186,13 +247,7 @@ export function ProfileFormComponent({
           )}
           <IdCard className="h-8 w-8 text-muted-foreground" />
           <h1 className="text-3xl font-bold tracking-tight">
-            {isEditMode
-              ? "Edit Profile"
-              : viewOnly
-              ? "View Profile"
-              : isEditing
-              ? "Edit Profile"
-              : "My Profile"}
+            {displayTitle}
           </h1>
         </div>
         <p className="text-muted-foreground">
@@ -218,153 +273,403 @@ export function ProfileFormComponent({
                 </Avatar>
               </div>
 
-              {/* Name Section */}
+              {/* Application Form Fields - Personal Information */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <User className="h-5 w-5 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold">Name</h3>
+                  <h3 className="text-lg font-semibold">Personal Information</h3>
+                </div>
+
+                <Field.Text
+                  name="name"
+                  label="Full Name"
+                  placeholder="Enter your full name"
+                  required
+                  disabled={!showEditControls}
+                />
+
+                <div className="space-y-2">
+                  <Label>
+                    Gender<span className="text-destructive">*</span>
+                  </Label>
+                  {showEditControls ? (
+                    <RadioGroup
+                      onValueChange={(value) => form.setValue("gender", value as "male" | "female" | "other")}
+                      defaultValue={form.getValues("gender")}
+                      className="flex gap-4"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="male" id="male" />
+                        <Label htmlFor="male">Male</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="female" id="female" />
+                        <Label htmlFor="female">Female</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="other" id="other" />
+                        <Label htmlFor="other">Others</Label>
+                      </div>
+                    </RadioGroup>
+                  ) : (
+                    <div className="p-2 border rounded-md">
+                      {profileData.gender}
+                    </div>
+                  )}
+                  {form.formState.errors.gender && (
+                    <p className="text-sm text-destructive">
+                      {form.formState.errors.gender.message}
+                    </p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Field.Text
-                    name="firstName"
-                    label="First Name"
-                    placeholder="Enter first name"
+                    name="primaryPhone"
+                    label="Primary Phone"
+                    placeholder="+92 300-000-0000"
                     required
                     disabled={!showEditControls}
                   />
                   <Field.Text
-                    name="lastName"
-                    label="Last Name"
-                    placeholder="Enter last name"
-                    required
+                    name="secondaryPhone"
+                    label="Secondary Phone"
+                    placeholder="+92 300-000-0000"
                     disabled={!showEditControls}
                   />
                 </div>
 
-                <Field.Text
-                  name="userName"
-                  label="User Name"
-                  placeholder="Enter username"
-                  required
-                  disabled={!showEditControls}
-                />
-              </div>
-
-              <Separator />
-
-              {/* Birthday Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Cake className="h-5 w-5 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold">Birthday</h3>
-                </div>
-                {showEditControls ? (
-                  <Field.DatePicker
-                    name="dateOfBirth"
-                    label="Date of Birth"
-                    required
-                  />
-                ) : (
-                  <div className="p-2 border rounded-md">
-                    {profileData.dateOfBirth?.toLocaleDateString()}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>
+                      Current City<span className="text-destructive">*</span>
+                    </Label>
+                    {showEditControls ? (
+                      <Select 
+                        onValueChange={(value) => form.setValue("currentCity", value)}
+                        defaultValue={form.getValues("currentCity")}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select city" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CITIES.map((city) => (
+                            <SelectItem key={city} value={city}>
+                              {city}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="p-2 border rounded-md">
+                        {profileData.currentCity}
+                      </div>
+                    )}
+                    {form.formState.errors.currentCity && (
+                      <p className="text-sm text-destructive">
+                        {form.formState.errors.currentCity.message}
+                      </p>
+                    )}
                   </div>
-                )}
+
+                  <div className="space-y-2">
+                    <Label>
+                      Permanent City<span className="text-destructive">*</span>
+                    </Label>
+                    {showEditControls ? (
+                      <Select 
+                        onValueChange={(value) => form.setValue("permanentCity", value)}
+                        defaultValue={form.getValues("permanentCity")}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select city" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CITIES.map((city) => (
+                            <SelectItem key={city} value={city}>
+                              {city}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="p-2 border rounded-md">
+                        {profileData.permanentCity}
+                      </div>
+                    )}
+                    {form.formState.errors.permanentCity && (
+                      <p className="text-sm text-destructive">
+                        {form.formState.errors.permanentCity.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <Field.Text
+                  name="email"
+                  label="Email"
+                  type="email"
+                  placeholder="you@example.com"
+                  required
+                  disabled={!showEditControls}
+                />
               </div>
 
               <Separator />
 
-              {/* Address Section */}
+              {/* Application Form Fields - Education */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold">Address</h3>
+                  <GraduationCap className="h-5 w-5 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold">Education</h3>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Field.Text
-                    name="country"
-                    label="Country"
-                    placeholder="Enter country"
-                    required
-                    disabled={!showEditControls}
-                  />
-                  <Field.Text
-                    name="state"
-                    label="State"
-                    placeholder="Enter state"
-                    required
-                    disabled={!showEditControls}
-                  />
-                  <Field.Text
-                    name="city"
-                    label="City"
-                    placeholder="Enter city"
-                    required
-                    disabled={!showEditControls}
-                  />
-                  <Field.Text
-                    name="zip"
-                    label="ZIP Code"
-                    placeholder="Enter ZIP code"
-                    required
-                    disabled={!showEditControls}
-                  />
+                  <div className="space-y-2">
+                    <Label>
+                      Years of Education<span className="text-destructive">*</span>
+                    </Label>
+                    {showEditControls ? (
+                      <Select 
+                        onValueChange={(value) => form.setValue("yearsOfEducation", value as "12" | "14" | "16" | "18")}
+                        defaultValue={form.getValues("yearsOfEducation")}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select years" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {YEARS_OF_EDUCATION.map((year) => (
+                            <SelectItem key={year} value={year}>
+                              {year}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="p-2 border rounded-md">
+                        {profileData.yearsOfEducation}
+                      </div>
+                    )}
+                    {form.formState.errors.yearsOfEducation && (
+                      <p className="text-sm text-destructive">
+                        {form.formState.errors.yearsOfEducation.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>
+                      Highest Degree<span className="text-destructive">*</span>
+                    </Label>
+                    {showEditControls ? (
+                      <Select 
+                        onValueChange={(value) => form.setValue("highestDegree", value as "HSSC" | "A-Levels" | "BS" | "BSc" | "MS" | "MSc")}
+                        defaultValue={form.getValues("highestDegree")}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select degree" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {DEGREES.map((degree) => (
+                            <SelectItem key={degree} value={degree}>
+                              {degree}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="p-2 border rounded-md">
+                        {profileData.highestDegree}
+                      </div>
+                    )}
+                    {form.formState.errors.highestDegree && (
+                      <p className="text-sm text-destructive">
+                        {form.formState.errors.highestDegree.message}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 <Field.Text
-                  name="street"
-                  label="Street"
-                  placeholder="Enter street address"
+                  name="majors"
+                  label="Majors"
+                  placeholder="e.g., Computer Science"
                   required
                   disabled={!showEditControls}
                 />
+
+                <Field.Text
+                  name="university"
+                  label="University"
+                  placeholder="Enter university name"
+                  required
+                  disabled={!showEditControls}
+                />
+
+                <div className="space-y-2">
+                  <Label>
+                    Year of Completion<span className="text-destructive">*</span>
+                  </Label>
+                  {showEditControls ? (
+                    <Field.Text
+                      name="yearOfCompletion"
+                      placeholder="Enter year of completion"
+                      required
+                      disabled={!showEditControls}
+                    />
+                  ) : (
+                    <div className="p-2 border rounded-md">
+                      {profileData.yearOfCompletion}
+                    </div>
+                  )}
+                  {form.formState.errors.yearOfCompletion && (
+                    <p className="text-sm text-destructive">
+                      {form.formState.errors.yearOfCompletion.message}
+                    </p>
+                  )}
+                </div>
               </div>
 
               <Separator />
 
-              {/* Phone Section */}
+              {/* Application Form Fields - Experience */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <Phone className="h-5 w-5 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold">Phone</h3>
+                  <Briefcase className="h-5 w-5 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold">Experience</h3>
                 </div>
 
-                <Field.Text
-                  name="phoneNumber"
-                  label="Phone Number"
-                  placeholder="Enter phone number"
-                  required
-                  disabled={!showEditControls}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="md:col-span-3">
+                    <Field.Text
+                      name="totalExperience"
+                      label="Total Experience"
+                      placeholder="Enter number (e.g., 5)"
+                      required
+                      disabled={!showEditControls}
+                    />
+                  </div>
+                  <div className="md:col-span-1">
+                    <div className="space-y-2">
+                      <Label>
+                        Unit<span className="text-destructive">*</span>
+                      </Label>
+                      {showEditControls ? (
+                        <Select 
+                          onValueChange={(value) => form.setValue("experienceUnit", value as "months" | "years")}
+                          defaultValue={form.getValues("experienceUnit")}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="months">Months</SelectItem>
+                            <SelectItem value="years">Years</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="p-2 border rounded-md">
+                          {profileData.experienceUnit}
+                        </div>
+                      )}
+                      {form.formState.errors.experienceUnit && (
+                        <p className="text-sm text-destructive">
+                          {form.formState.errors.experienceUnit.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Experience Details */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-medium">Experience Details</h4>
+                    {showEditControls && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => append({ organization: "", designation: "", from: undefined, to: undefined })}
+                      >
+                        <PlusIcon className="mr-2 h-4 w-4" />
+                        Add Experience
+                      </Button>
+                    )}
+                  </div>
+
+                  {fields.map((field, index) => (
+                    <div key={field.id} className="border rounded-lg p-4 space-y-4">
+                      <div className="flex justify-between items-start">
+                        <h5 className="text-sm font-medium">Experience {index + 1}</h5>
+                        {showEditControls && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => remove(index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Field.Text
+                          name={`experiences.${index}.organization`}
+                          label="Organization"
+                          placeholder="Enter organization name"
+                          disabled={!showEditControls}
+                        />
+                        <Field.Text
+                          name={`experiences.${index}.designation`}
+                          label="Designation"
+                          placeholder="e.g., Senior Developer"
+                          disabled={!showEditControls}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {showEditControls ? (
+                          <>
+                            <DatePickerField
+                              name={`experiences.${index}.from`}
+                              label="From"
+                              mode="single"
+                            />
+                            <DatePickerField
+                              name={`experiences.${index}.to`}
+                              label="To"
+                              mode="single"
+                            />
+                          </>
+                        ) : (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label>From</Label>
+                              <div className="p-2 border rounded-md">
+                                {form.watch(`experiences.${index}.from`) 
+                                  ? format(form.watch(`experiences.${index}.from`)!, 'PPP')
+                                  : 'Not provided'}
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label>To</Label>
+                              <div className="p-2 border rounded-md">
+                                {form.watch(`experiences.${index}.to`) 
+                                  ? format(form.watch(`experiences.${index}.to`)!, 'PPP')
+                                  : 'Not provided'}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <Separator />
-
-              {/* Email Address Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Mail className="h-5 w-5 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold">Email Address</h3>
-                </div>
-
-                <Field.Text
-                  name="primaryEmail"
-                  label="Primary Email"
-                  type="email"
-                  placeholder="Enter primary email"
-                  required
-                  disabled={!showEditControls}
-                />
-
-                <Field.Text
-                  name="secondaryEmail"
-                  label="Secondary Email (Optional)"
-                  type="email"
-                  placeholder="Enter secondary email"
-                  disabled={!showEditControls}
-                />
-              </div>
 
               {/* Action Buttons */}
               {(isEditing || isEditMode) && !viewOnly && (

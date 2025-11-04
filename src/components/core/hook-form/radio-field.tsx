@@ -27,6 +27,7 @@ interface RadioGroupFieldProps {
   options: RadioOption[];
   direction?: 'vertical' | 'horizontal';
   className?: string;
+  required?: boolean;
 }
 
 export function RadioGroupField({
@@ -34,8 +35,9 @@ export function RadioGroupField({
   label,
   description,
   options,
-  direction = 'vertical',
+  direction = 'horizontal',
   className,
+  required = false,
 }: RadioGroupFieldProps) {
   const { control } = useFormContext();
 
@@ -43,11 +45,15 @@ export function RadioGroupField({
     <FormField
       name={name}
       control={control}
+      rules={required ? { required: "This field is required" } : undefined}
       render={({ field }) => (
         <FormItem className={cn('space-y-2', className)}>
           {(label || description) && (
             <div>
-              {label && <FormLabel className="text-base">{label}</FormLabel>}
+              <FormLabel className="text-base">
+                {label}
+                {required && <span className="text-destructive"> *</span>}
+              </FormLabel>
               {description && <FormDescription>{description}</FormDescription>}
             </div>
           )}

@@ -3,33 +3,90 @@
 import Button from "@/components/core/button";
 import { CustomBreadcrumbs } from "@/components/core/custom-breadcrumbs";
 import Table from "@/components/core/table/table";
+import { ConfirmationDialog } from "@/components/core/confirmation-dialog";
 import { useTableState } from "@/hooks/use-table-state";
 import { createColumnHelper } from "@tanstack/react-table";
-import { CheckCircle, XCircle } from "lucide-react";
-import React from "react";
-import { dummyApplicants } from "../data/dummy-applicants";
-import { applicant } from "../types/applicant";
+import { CheckCircle, XCircle, Eye } from "lucide-react";
+import React, { useState } from "react";
+import { useGetAllUsersQuery, useUpdateUserMutation, useGetUserByIdQuery } from "@/service/rtk-query/users/users-apis";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export function ApplicationView() {
   const tableStateHook = useTableState();
-  const columnHelper = createColumnHelper<applicant>();
+  const columnHelper = createColumnHelper<any>();
+  const router = useRouter();
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    action: null as 'approve' | 'reject' | null,
+    userId: '',
+    userName: '',
+  });
+  const [isUpdating, setIsUpdating] = useState(false);
+  
+  // Fetch real users from backend
+  const { data: users = [], isLoading } = useGetAllUsersQuery();
+  const [updateUser] = useUpdateUserMutation();
 
-  const handleApprove = (applicantId: string) => {
-    console.log("Approved applicant:", applicantId);
-    // You could update status in state or call an API here
+  const handleApprove = async (userId: string, userName: string) => {
+    setConfirmDialog({
+      open: true,
+      action: 'approve',
+      userId,
+      userName,
+    });
+  };
+  
+  const handleReject = async (userId: string, userName: string) => {
+    setConfirmDialog({
+      open: true,
+      action: 'reject',
+      userId,
+      userName,
+    });
   };
 
-  const handleReject = (applicantId: string) => {
-    console.log("Rejected applicant:", applicantId);
-    // Similarly update status or trigger API
+  const handleView = async (userId: string) => {
+    // Navigate to the application view page
+    router.push(`/admin/applications/view/${userId}`);
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmDialog.action || !confirmDialog.userId) return;
+    
+    setIsUpdating(true);
+    try {
+      const status = confirmDialog.action === 'approve' ? 'approved' : 'rejected';
+      await updateUser({ 
+        id: confirmDialog.userId, 
+        payload: { applicationStatus: status }
+      }).unwrap();
+      
+      toast.success(
+        `Application ${confirmDialog.action === 'approve' ? 'approved' : 'rejected'} successfully for ${confirmDialog.userName}`
+      );
+    } catch (error: any) {
+      console.error(`Error ${confirmDialog.action}ing user:`, error);
+      toast.error(`Failed to ${confirmDialog.action} application: ${error?.data?.message || error?.message || 'Unknown error'}`);
+    } finally {
+      setIsUpdating(false);
+      setConfirmDialog({
+        open: false,
+        action: null,
+        userId: '',
+        userName: '',
+      });
+    }
   };
 
   const columns = [
-    columnHelper.accessor("Name", {
+    columnHelper.accessor((row) => row.name, {
+      id: "name",
       header: "Name",
       cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
     }),
-    columnHelper.accessor("email", {
+    columnHelper.accessor((row) => row.email, {
+      id: "email",
       header: "Email",
       cell: ({ getValue }) => (
         <span className="text-muted-foreground font-mono text-sm">
@@ -37,35 +94,41 @@ export function ApplicationView() {
         </span>
       ),
     }),
-    columnHelper.accessor("phoneNumber", {
+    columnHelper.accessor((row) => row.primaryPhone, {
+      id: "primaryPhone",
       header: "Phone Number",
       cell: ({ getValue }) => (
         <span className="text-muted-foreground">{getValue()}</span>
       ),
     }),
-    columnHelper.accessor("location", {
-      header: "Location",
+    columnHelper.accessor((row) => row.permanentCity, {
+      id: "permanentCity",
+      header: "Permanent City",
       cell: ({ getValue }) => (
         <span className="text-muted-foreground">{getValue()}</span>
       ),
     }),
-    columnHelper.accessor("applicationDate", {
+    columnHelper.accessor((row) => row.createdAt, {
+      id: "createdAt",
       header: "Application Date",
-      cell: ({ getValue }) => (
-        <span className="text-muted-foreground">
-          {getValue().toLocaleDateString()}
-        </span>
-      ),
+      cell: ({ getValue }) => {
+        const d = getValue();
+        return (
+          <span className="text-muted-foreground">
+            {d ? new Date(d).toLocaleDateString() : "-"}
+          </span>
+        );
+      },
     }),
-    columnHelper.accessor("status", {
+    columnHelper.accessor((row) => row.applicationStatus, {
+      id: "applicationStatus",
       header: "Status",
       cell: ({ getValue }) => {
         const status = getValue();
         const statusColors: Record<string, string> = {
-          Pending: "bg-yellow-100 text-yellow-800",
-          Reviewed: "bg-blue-100 text-blue-800",
-          Accepted: "bg-green-100 text-green-800",
-          Rejected: "bg-red-100 text-red-800",
+          pending: "bg-yellow-100 text-yellow-800",
+          approved: "bg-green-100 text-green-800",
+          rejected: "bg-red-100 text-red-800",
         };
         return (
           <span
@@ -73,7 +136,7 @@ export function ApplicationView() {
               statusColors[status] || "bg-gray-100 text-gray-800"
             }`}
           >
-            {status}
+            {status.charAt(0).toUpperCase() + status.slice(1)}
           </span>
         );
       },
@@ -82,14 +145,23 @@ export function ApplicationView() {
       id: "actions",
       header: "Actions",
       cell: ({ row }) => {
-        const applicant = row.original;
+        const user = row.original;
         return (
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleApprove(applicant.id)}
-              title="Approve applicant"
+              title="View profile"
+              onClick={() => handleView(user.id)}
+              className="h-8 w-8"
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleApprove(user.id, user.name)}
+              title="Approve application"
               className="h-8 w-8 text-green-600 hover:bg-green-50 hover:text-green-700"
             >
               <CheckCircle className="h-4 w-4" />
@@ -97,8 +169,8 @@ export function ApplicationView() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleReject(applicant.id)}
-              title="Reject applicant"
+              onClick={() => handleReject(user.id, user.name)}
+              title="Reject application"
               className="h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700"
             >
               <XCircle className="h-4 w-4" />
@@ -112,22 +184,30 @@ export function ApplicationView() {
   return (
     <div>
       <CustomBreadcrumbs
-        heading="Applicants Management"
+        heading="Applications Management"
         links={[
           { name: "Dashboard", href: "/admin/dashboard" },
-          { name: "Applicants Management" },
+          { name: "Applications Management" },
         ]}
       />
       <div className="py-3">
         <Table
           columns={columns}
-          data={dummyApplicants}
-          totalCount={dummyApplicants.length}
-          loading={false}
+          data={users}
+          totalCount={users.length}
+          loading={isLoading}
           tableState={tableStateHook}
-          heading="Applicants Management"
+          heading="Application Management"
         />
       </div>
+      
+      <ConfirmationDialog
+        open={confirmDialog.open}
+        message={`Are you sure you want to ${confirmDialog.action} the application for ${confirmDialog.userName}?`}
+        loading={isUpdating}
+        onClose={() => setConfirmDialog({ ...confirmDialog, open: false })}
+        onConfirm={handleConfirmAction}
+      />
     </div>
   );
 }

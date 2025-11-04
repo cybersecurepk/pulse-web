@@ -38,6 +38,14 @@ export interface TestResponse {
   createdAt: string;
   updatedAt: string;
   questions: QuestionResponse[];
+  screenshots?: TestScreenshot[];
+}
+
+export interface TestScreenshot {
+  id: string;
+  imageUrl: string;
+  description?: string;
+  createdAt: string;
 }
 
 export interface QuestionResponse {

@@ -59,6 +59,7 @@ function ProfileWrapper({
       description={description}
       onEdit={!viewOnly && userId ? handleEdit : undefined}
       showEditButton={!viewOnly && !!userId}
+      backUrl={backUrl}
     />
   );
 }

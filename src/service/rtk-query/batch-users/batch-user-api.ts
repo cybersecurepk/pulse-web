@@ -24,6 +24,17 @@ const batchUsersApi = appApi
           { type: "BatchUsers", id: `batch-${batchId}` },
         ],
       }),
+      // New endpoint to get batch users by user ID
+      getBatchUsersByUserId: build.query<BatchUserResponse[], string>({
+        query: (userId) => ({
+          url: `/batch-users/list`,
+          method: "GET",
+          params: { userId },
+        }),
+        providesTags: (result, error, userId) => [
+          { type: "BatchUsers", id: `user-${userId}` },
+        ],
+      }),
       saveBatchUser: build.mutation<BatchUserResponse, BatchUserPayload>({
         query: (payload) => ({
           url: `/batch-users/save`,
@@ -60,8 +71,8 @@ const batchUsersApi = appApi
 export const {
   useGetBatchUserByIdQuery,
   useGetBatchUsersByBatchIdQuery,
+  useGetBatchUsersByUserIdQuery, // New 
   useSaveBatchUserMutation,
   useUpdateBatchUserMutation,
   useDeleteBatchUserMutation,
 } = batchUsersApi;
-

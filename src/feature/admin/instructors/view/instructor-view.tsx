@@ -52,17 +52,11 @@ export function InstructorsView() {
 
   const columns = [
     columnHelper.accessor("firstName", {
-      header: "First Name",
+      header: "Name",
       cell: ({ row }) => (
         <span className="font-medium">
           {row.original.firstName} {row.original.lastName}
         </span>
-      ),
-    }),
-    columnHelper.accessor("lastName", {
-      header: "Last Name",
-      cell: ({ getValue }) => (
-        <span className="text-muted-foreground">{getValue()}</span>
       ),
     }),
     columnHelper.accessor("email", {

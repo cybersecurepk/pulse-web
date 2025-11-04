@@ -1,7 +1,7 @@
 
 export interface BatchPayload {
   name: string;
-  batchCode: string;
+  batchCode?: string; // Made optional
   description: string;
   startDate: string;
   endDate: string;
@@ -9,12 +9,13 @@ export interface BatchPayload {
   maxCapacity: number;
   location: string;
   status: string;
+  sessionType: "remote" | "onsite";
 }
 
 export interface BatchResponse {
   id: string;
   name: string;
-  batchCode: string;
+  batchCode?: string; // Made optional
   description: string;
   location: string;
   startDate: string;
@@ -22,7 +23,7 @@ export interface BatchResponse {
   isActive: boolean;
   maxCapacity: number;
   status: string;
+  sessionType: "remote" | "onsite";
   createdAt: string;
   updatedAt: string;
 }
-

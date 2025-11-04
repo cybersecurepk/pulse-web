@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { IdCard, User, Cake, MapPin, Phone, Mail, Edit3 } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, IdCard, User, Cake, MapPin, Phone, Mail, Edit3, GraduationCap, Briefcase } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -17,6 +18,7 @@ import {
   DisplayFieldGroup,
 } from "@/components/core/display-field";
 import { ProfileFormData } from "./profile-form";
+import { format } from "date-fns";
 
 interface ProfileViewProps {
   data: ProfileFormData;
@@ -24,6 +26,7 @@ interface ProfileViewProps {
   description?: string;
   onEdit?: () => void;
   showEditButton?: boolean;
+  backUrl?: string;
 }
 
 export function ProfileViewComponent({
@@ -32,12 +35,20 @@ export function ProfileViewComponent({
   description = "View your profile information",
   onEdit,
   showEditButton = true,
+  backUrl,
 }: ProfileViewProps) {
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
+          {backUrl && (
+            <Link href={backUrl}>
+              <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            </Link>
+          )}
           <IdCard className="h-8 w-8 text-muted-foreground" />
           <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
         </div>
@@ -59,86 +70,32 @@ export function ProfileViewComponent({
             <Avatar className="w-32 h-32 border-2 border-muted">
               <AvatarImage src={data.profileImage} alt="Profile" />
               <AvatarFallback className="text-lg">
-                {data.firstName?.[0]}
-                {data.lastName?.[0]}
+                {data.name?.[0]}
               </AvatarFallback>
             </Avatar>
           </div>
 
-          {/* Name Section */}
+          {/* Application Form Fields - Personal Information */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <User className="h-5 w-5 text-muted-foreground" />
-              <h3 className="text-lg font-semibold">Name</h3>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Edit your name here if you wish to make any changes. You can also
-              edit your user name which will be shown publicly.
-            </p>
-
-            <div className="space-y-3">
-              {/* First and Last Name in one box */}
-              <DisplayFieldGroup
-                fields={[
-                  { label: "First Name", value: data.firstName },
-                  { label: "Last Name", value: data.lastName },
-                ]}
-                variant="default"
-                size="default"
-                spacing="sm"
-              />
-
-              {/* User Name in separate box */}
-              <DisplayField
-                label="User Name"
-                value={data.userName}
-                variant="default"
-              />
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Birthday Section */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Cake className="h-5 w-5 text-muted-foreground" />
-              <h3 className="text-lg font-semibold">Birthday</h3>
+              <h3 className="text-lg font-semibold">Personal Information</h3>
             </div>
 
             <DisplayField
-              label="Date"
-              value={data.dateOfBirth}
+              label="Full Name"
+              value={data.name}
               variant="default"
-              formatValue={(value) => {
-                if (value instanceof Date) {
-                  return value.toLocaleDateString("en-GB", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  });
-                }
-                return String(value);
-              }}
             />
-          </div>
-
-          <Separator />
-
-          {/* Address Section */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-muted-foreground" />
-              <h3 className="text-lg font-semibold">Address</h3>
-            </div>
 
             <DisplayFieldGroup
               fields={[
-                { label: "Country", value: data.country },
-                { label: "State", value: data.state },
-                { label: "City", value: data.city },
-                { label: "Street", value: data.street },
-                { label: "ZIP", value: data.zip },
+                { label: "Gender", value: data.gender },
+                { label: "Primary Phone", value: data.primaryPhone },
+                { label: "Secondary Phone", value: data.secondaryPhone || "Not provided" },
+                { label: "Current City", value: data.currentCity },
+                { label: "Permanent City", value: data.permanentCity },
+                { label: "Email", value: data.email },
               ]}
               variant="default"
             />
@@ -146,46 +103,82 @@ export function ProfileViewComponent({
 
           <Separator />
 
-          {/* Phone Section */}
+          {/* Application Form Fields - Education */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <Phone className="h-5 w-5 text-muted-foreground" />
-              <h3 className="text-lg font-semibold">Phone</h3>
+              <GraduationCap className="h-5 w-5 text-muted-foreground" />
+              <h3 className="text-lg font-semibold">Education</h3>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Keep your contact number up to date.
-            </p>
 
-            <DisplayField
-              label="Phone Number"
-              value={data.phoneNumber}
+            <DisplayFieldGroup
+              fields={[
+                { label: "Years of Education", value: data.yearsOfEducation },
+                { label: "Highest Degree", value: data.highestDegree },
+                { label: "Majors", value: data.majors },
+                { label: "University", value: data.university },
+                { label: "Year of Completion", value: data.yearOfCompletion },
+              ]}
               variant="default"
             />
           </div>
 
           <Separator />
 
-          {/* Email Section */}
+          {/* Application Form Fields - Experience */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <Mail className="h-5 w-5 text-muted-foreground" />
-              <h3 className="text-lg font-semibold">Email Address</h3>
+              <Briefcase className="h-5 w-5 text-muted-foreground" />
+              <h3 className="text-lg font-semibold">Experience</h3>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Manage your email addresses for notifications and account
-              recovery.
-            </p>
 
-            <DisplayFieldGroup
-              fields={[
-                { label: "Primary Email", value: data.primaryEmail },
-                {
-                  label: "Secondary Email",
-                  value: data.secondaryEmail || "Not provided",
-                },
-              ]}
+            <DisplayField
+              label="Total Experience"
+              value={`${data.totalExperience} ${data.experienceUnit}`}
               variant="default"
             />
+
+            {/* Experience Details */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-medium">Experience Details</h4>
+              
+              {data.experiences && data.experiences.length > 0 ? (
+                <div className="space-y-4">
+                  {data.experiences.map((exp, index) => (
+                    <div key={index} className="border rounded-lg p-4 space-y-2">
+                      <h5 className="text-sm font-medium">Experience {index + 1}</h5>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <DisplayField
+                          label="Organization"
+                          value={exp.organization || "Not provided"}
+                          variant="default"
+                        />
+                        <DisplayField
+                          label="Designation"
+                          value={exp.designation || "Not provided"}
+                          variant="default"
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <DisplayField
+                          label="From"
+                          value={exp.from ? format(exp.from, 'PPP') : "Not provided"}
+                          variant="default"
+                        />
+                        <DisplayField
+                          label="To"
+                          value={exp.to ? format(exp.to, 'PPP') : "Not provided"}
+                          variant="default"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-sm">No experience details provided</p>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -24,6 +24,17 @@ const batchTestsApi = appApi
           { type: "BatchTests", id: `batch-${batchId}` },
         ],
       }),
+      // New endpoint to get batch tests by user ID
+      getBatchTestsByUserId: build.query<BatchTestResponse[], string>({
+        query: (userId) => ({
+          url: `/batch-tests/list`,
+          method: "GET",
+          params: { userId },
+        }),
+        providesTags: (result, error, userId) => [
+          { type: "BatchTests", id: `user-${userId}` },
+        ],
+      }),
       saveBatchTest: build.mutation<BatchTestResponse, BatchTestPayload>({
         query: (payload) => ({
           url: `/batch-tests/save`,
@@ -60,8 +71,8 @@ const batchTestsApi = appApi
 export const {
   useGetBatchTestByIdQuery,
   useGetBatchTestsByBatchIdQuery,
+  useGetBatchTestsByUserIdQuery, // New hook export
   useSaveBatchTestMutation,
   useUpdateBatchTestMutation,
   useDeleteBatchTestMutation,
 } = batchTestsApi;
-
