@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ActiveTestsView } from "./active-tests-view";
 import { useGetBatchTestsByUserIdQuery } from "@/service/rtk-query/batch-tests/batch-test-api";
+import { useSafeSession } from "@/hooks/use-session";
 import { BookOpen } from "lucide-react";
 import {
   Card,
@@ -14,10 +15,12 @@ interface UserTestsViewProps {
 }
 
 export function UserTestsView({ userId }: UserTestsViewProps) {
-  // For demo purposes, we'll use a default user ID if none is provided
-  const effectiveUserId = userId || "945df9d7-0ae9-46b8-b599-17bdbac0c8dc"; // Default user ID for testing
+  const { data: session } = useSafeSession();
   
-  const { data: batchTestsData = [], isLoading, isError, error } = useGetBatchTestsByUserIdQuery(effectiveUserId, {
+  // Use session user ID if available, otherwise fallback to prop
+  const effectiveUserId = session?.user?.id || userId;
+  
+  const { data: batchTestsData = [], isLoading, isError, error } = useGetBatchTestsByUserIdQuery(effectiveUserId!, {
     skip: !effectiveUserId,
   });
 

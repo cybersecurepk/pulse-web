@@ -135,6 +135,7 @@ useEffect(() => {
       ...prev
     ]);
   }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [batchId, batchData]);
 
 
@@ -154,12 +155,7 @@ useEffect(() => {
     maxCapacity: batchData.maxCapacity,
     sessionType: batchData.sessionType || "remote",
   });
-}, [
-  batchData,
-  dynamicLocationOptions,
-  dynamicStatusOptions,
-  dynamicSessionTypeOptions,
-]);
+}, [batchData, form]);
 
 
   const onSubmit = async (values: BatchFormData) => {

@@ -70,7 +70,7 @@ const testsApi = appApi
           method: "POST",
           body: payload,
         }),
-        invalidatesTags: (result, error, { testId }) => [{ type: "Tests", testId }],
+        invalidatesTags: (result, error, { testId }) => [{ type: "Tests", id: testId }],
       }),
       getTestScreenshots: build.query<TestScreenshot[], string>({
         query: (testId) => ({

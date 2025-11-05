@@ -3,6 +3,7 @@
 import { CustomBreadcrumbs } from "@/components/core/custom-breadcrumbs";
 import Table from "@/components/core/table/table";
 import { useTableState } from "@/hooks/use-table-state";
+import { useSafeSession } from "@/hooks/use-session";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Eye } from "lucide-react";
 import React from "react";
@@ -19,11 +20,12 @@ export function UserBatchView({ userId }: UserBatchViewProps) {
   const router = useRouter();
   const tableStateHook = useTableState();
   const columnHelper = createColumnHelper<BatchUserResponse>();
+  const { data: session } = useSafeSession();
   
-  // For demo purposes, we'll use a default user ID if none is provided
-  const effectiveUserId = userId || "1"; // Default user ID for testing
+  // Use session user ID if available, otherwise fallback to prop
+  const effectiveUserId = session?.user?.id || userId;
   
-  const { data: batchUsersData = [], isLoading } = useGetBatchUsersByUserIdQuery(effectiveUserId, {
+  const { data: batchUsersData = [], isLoading } = useGetBatchUsersByUserIdQuery(effectiveUserId!, {
     skip: !effectiveUserId,
   });
 

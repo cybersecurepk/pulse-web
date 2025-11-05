@@ -10,9 +10,10 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar, MapPin, Users, Loader2 } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Users, Loader2, BookOpen, Clock } from "lucide-react";
 import Link from "next/link";
 import { useGetBatchByIdQuery } from "@/service/rtk-query/batches/batch-api";
+import { useGetBatchTestsByBatchIdQuery } from "@/service/rtk-query/batch-tests/batch-test-api";
 
 interface UserBatchDetailsProps {
   batchId: string;
@@ -20,6 +21,7 @@ interface UserBatchDetailsProps {
 
 export function UserBatchDetails({ batchId }: UserBatchDetailsProps) {
   const { data: batch, isLoading } = useGetBatchByIdQuery(batchId);
+  const { data: batchTests = [], isLoading: isLoadingTests } = useGetBatchTestsByBatchIdQuery(batchId);
 
   if (isLoading) {
     return (
@@ -135,6 +137,73 @@ export function UserBatchDetails({ batchId }: UserBatchDetailsProps) {
               </div>
             </>
           )}
+
+          {/* Tests Section */}
+          <Separator />
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Assigned Tests</h3>
+              <Badge variant="outline">
+                {batchTests.length} {batchTests.length === 1 ? 'Test' : 'Tests'}
+              </Badge>
+            </div>
+            {isLoadingTests ? (
+              <div className="flex justify-center items-center py-8">
+                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                <p className="text-muted-foreground">Loading tests...</p>
+              </div>
+            ) : batchTests.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <BookOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                <p>No tests assigned to this batch yet</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {batchTests.map((batchTest) => (
+                  <Card key={batchTest.id} className="hover:bg-muted/50 transition-colors">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <BookOpen className="h-4 w-4 text-primary" />
+                            <h4 className="font-semibold">{batchTest.test.title}</h4>
+                            <Badge 
+                              variant={batchTest.test.isActive ? "default" : "secondary"}
+                              className={batchTest.test.isActive ? "bg-green-100 text-green-800" : ""}
+                            >
+                              {batchTest.test.isActive ? "Active" : "Inactive"}
+                            </Badge>
+                          </div>
+                          {batchTest.test.description && (
+                            <p className="text-sm text-muted-foreground mb-2">
+                              {batchTest.test.description}
+                            </p>
+                          )}
+                          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              <span>{batchTest.test.duration} minutes</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <BookOpen className="h-3 w-3" />
+                              <span>{batchTest.test.questions?.length || 0} questions</span>
+                            </div>
+                            {batchTest.test.testCode && (
+                              <div className="flex items-center gap-1">
+                                <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded">
+                                  {batchTest.test.testCode}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
