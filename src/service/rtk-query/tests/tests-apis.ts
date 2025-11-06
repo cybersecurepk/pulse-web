@@ -79,7 +79,25 @@ const testsApi = appApi
         }),
         providesTags: (result, error, testId) => [{ type: "Tests", testId }],
       }),
+      getTestForAttempt: build.query<TestResponse, string>({
+        query: (testId) => ({
+          url: `/tests/${testId}/attempt`,
+          method: "GET",
+        }),
+        providesTags: (result, error, testId) => [{ type: "Tests", id: `attempt-${testId}` }],
+      }),
+      submitTestAttempt: build.mutation<
+        { totalQuestions: number; correctAnswers: number; wrongAnswers: number; score: number; passed: boolean; passingCriteria: number },
+        { testId: string; userId: string; answers: Record<string, string>; timeSpent?: number }
+      >({
+        query: ({ testId, ...payload }) => ({
+          url: `/tests/${testId}/submit`,
+          method: "POST",
+          body: payload,
+        }),
+      }),
     }),
+    overrideExisting: true,
   });
 
 export const {
@@ -92,14 +110,6 @@ export const {
   useDeleteTestMutation,
   useAddTestScreenshotMutation,
   useGetTestScreenshotsQuery,
+  useGetTestForAttemptQuery,
+  useSubmitTestAttemptMutation,
 } = testsApi;
-
-//to get tests for users
-// // 1. Get user's batch assignments
-// const { data: batchUsers } = useGetBatchUsersByUserIdQuery(userId);
-
-// // 2. Extract batch IDs
-// const batchIds = batchUsers?.map(bu => bu.batch.id) || [];
-
-// // 3. For each batch, get the assigned tests
-// // This would require calling useGetBatchTestsByBatchIdQuery for each batchId

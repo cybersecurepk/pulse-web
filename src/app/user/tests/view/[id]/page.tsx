@@ -6,5 +6,6 @@ export default async function UserViewTestRoute({
   params: Promise<{ id: string }>;
 }) {
   const resolvedParams = await params;
-  return <TestDetails params={{ id: resolvedParams.id }} />;
+  const testId = resolvedParams.id;
+  return <TestDetails params={{ id: testId }} />;
 }
