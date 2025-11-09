@@ -35,6 +35,7 @@ export const CITIES = [
   "Farooqabad",
   "Ferozwala",
   "Ghotki",
+  "Gilgit-Baltistan",
   "Gojra",
   "Gujar Khan",
   "Gujranwala",

@@ -29,33 +29,6 @@ export function UserDashboardView() {
     skip: !batchId,
   });
 
-  // Determine application status based on batch user data
-  const getApplicationStatus = () => {
-    if (!activeBatch) return "applied";
-    const status = activeBatch.batch?.status?.toLowerCase() || "pending";
-    
-    if (status === "active" || status === "on_going") return "active";
-    if (status === "completed") return "completed";
-    if (activeBatch.isActive) return "approved";
-    return "applied";
-  };
-
-  const applicationStatus = getApplicationStatus();
-
-  // Status tracker steps
-  const statusSteps = [
-    { key: "applied", label: "Applied", icon: AlertCircle },
-    { key: "approved", label: "Approved", icon: CheckCircle2 },
-    { key: "active", label: "Active", icon: Clock },
-    { key: "completed", label: "Completed", icon: CheckCircle2 },
-  ];
-
-  const getCurrentStepIndex = () => {
-    return statusSteps.findIndex((step) => step.key === applicationStatus);
-  };
-
-  const currentStepIndex = getCurrentStepIndex();
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -84,59 +57,8 @@ export function UserDashboardView() {
         </CardContent>
       </Card>
 
-      {/* Status Tracker */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Application Status</CardTitle>
-          <CardDescription>Track your progress through the program</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="relative">
-            {/* Progress Line */}
-            <div className="absolute left-0 top-6 h-0.5 w-full bg-gray-200">
-              <div
-                className="h-full bg-blue-600 transition-all duration-500"
-                style={{
-                  width: `${(currentStepIndex / (statusSteps.length - 1)) * 100}%`,
-                }}
-              />
-            </div>
-
-            {/* Status Steps */}
-            <div className="relative flex justify-between">
-              {statusSteps.map((step, index) => {
-                const isCompleted = index <= currentStepIndex;
-                const isCurrent = index === currentStepIndex;
-                const Icon = step.icon;
-
-                return (
-                  <div key={step.key} className="flex flex-col items-center">
-                    <div
-                      className={`flex h-12 w-12 items-center justify-center rounded-full border-2 transition-all ${
-                        isCompleted
-                          ? "border-blue-600 bg-blue-600 text-white"
-                          : "border-gray-300 bg-white text-gray-400"
-                      } ${
-                        isCurrent ? "ring-4 ring-blue-200" : ""
-                      }`}
-                    >
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <span
-                      className={`mt-2 text-sm font-medium ${
-                        isCompleted ? "text-gray-900" : "text-gray-500"
-                      }`}
-                    >
-                      {step.label}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
+      <Separator />
+      
       {/* Batch Information */}
       {activeBatch && (
         <Card>

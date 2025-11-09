@@ -46,7 +46,7 @@ export function UserProfileView({ params }: UserProfileViewProps) {
     <div className="p-4">
       <ProfileWrapper 
         profileData={profileData} 
-        title="User Profile"
+        title="User Details"
         description="View the user's profile information"
         backUrl="/admin/users"
         viewOnly={true}

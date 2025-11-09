@@ -22,8 +22,12 @@ function GoogleCallbackContent() {
         localStorage.setItem("refreshToken", refreshToken);
         localStorage.setItem("user", JSON.stringify(userData));
 
-        // Redirect to user dashboard
-        router.push("/user/dashboard");
+        // Redirect based on user role
+        if (userData.role === "admin" || userData.role === "super_admin") {
+          router.push("/admin/dashboard");
+        } else {
+          router.push("/user/dashboard");
+        }
       } catch (error) {
         console.error("Error processing user data:", error);
         router.push("/auth/sign-in?error=invalid_data");

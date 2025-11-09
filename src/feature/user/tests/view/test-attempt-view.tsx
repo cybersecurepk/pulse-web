@@ -19,6 +19,7 @@ import { useSafeSession } from "@/hooks/use-session";
 import { Clock, AlertCircle, CheckCircle, Loader2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { ResultDialog } from "@/components/core/result-dialog";
+import Webcam from "react-webcam"; 
 
 interface TestAttemptViewProps {
   testId: string;
