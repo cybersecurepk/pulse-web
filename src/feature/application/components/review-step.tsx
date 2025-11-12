@@ -1,16 +1,20 @@
 "use client"
 
 import { ApplicationFormData } from "../data/schema"
+import { CONSENT_SECTIONS } from "../data/constants"
 import { Card, CardContent } from "@/components/ui/card"
 import { format } from "date-fns"
+import { CheckboxField } from "@/components/core/hook-form/checkbox-field"
 
 interface ReviewStepProps {
   data: ApplicationFormData
+  form: any
 }
 
-export function ReviewStep({ data }: ReviewStepProps) {
+export function ReviewStep({ data, form }: ReviewStepProps) {
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full overflow-hidden">
       {/* Personal Information */}
       <Card>
         <CardContent className="pt-6">
@@ -154,11 +158,60 @@ export function ReviewStep({ data }: ReviewStepProps) {
                 </ul>
               </dd>
             </div>
-            <div className="md:col-span-2">
-              <dt className="text-sm font-medium text-muted-foreground">PII Consent</dt>
-              <dd className="mt-1">{data.consent ? "✓ Consented" : "✗ Not consented"}</dd>
-            </div>
           </dl>
+        </CardContent>
+      </Card>
+
+      {/* Consent */}
+      <Card>
+        <CardContent className="pt-6">
+          <h3 className="text-lg font-semibold mb-4">Consent <span className="text-destructive">*</span></h3>
+          <div className="border rounded-lg p-4 max-w-200 max-h-60 overflow-y-auto overflow-x-hidden">
+            {CONSENT_SECTIONS.map((section, index) => (
+              <div key={index} className={section.centered ? "text-center mb-6 break-words" : "mb-6 break-words"}>
+                {section.centered ? (
+                  <>
+                    <h2 className="text-xl font-bold mb-2 break-words">{section.title}</h2>
+                    {section.subtitle && (
+                      <h3 className="text-lg font-semibold text-primary break-words">{section.subtitle}</h3>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-lg font-semibold mb-3 break-words">
+                      {section.number && `${section.number}. `}{section.title}
+                    </h3>
+                    {section.content && (
+                      <p className="text-sm leading-relaxed whitespace-pre-line mb-3 break-words">
+                        {section.content}
+                      </p>
+                    )}
+                    {section.items && (
+                      <ul className="list-disc list-inside space-y-2 ml-4">
+                        {section.items.map((item, itemIndex) => (
+                          <li key={itemIndex} className="text-sm leading-relaxed break-words">
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="mt-4">
+            <CheckboxField
+              name="consent"
+              options={[
+                {
+                  id: "consent",
+                  label: "I have read and understood the consent notice and agree to the collection, use, and processing of my personal data",
+                },
+              ]}
+              required
+            />
+          </div>
         </CardContent>
       </Card>
     </div>

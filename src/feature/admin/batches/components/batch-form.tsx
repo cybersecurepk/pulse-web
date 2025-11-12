@@ -14,53 +14,23 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import {
   useGetBatchByIdQuery,
   useSaveBatchMutation,
   useUpdateBatchMutation,
 } from "@/service/rtk-query/batches/batch-api";
 import { BatchPayload } from "@/service/rtk-query/batches/batch-type";
-
-const batchSchema = z.object({
-  name: z.string().min(3, { message: "Batch name must be at least 3 characters" }),
-  batchCode: z.string().optional(),
-  description: z.string().optional(),
-  location: z.string().min(1, { message: "Location is required" }),
-  startDate: z.date({ message: "Start date is required" }),
-  endDate: z.date({ message: "End date is required" }),
-  status: z.string().min(1, { message: "Status is required" }),
-  isActive: z.boolean(),
-  maxCapacity: z.number().min(1, { message: "Max capacity must be at least 1" }).max(1000),
-  sessionType: z.enum(["remote", "onsite"], { message: "Session type is required" }),
-});
-
-type BatchFormData = z.infer<typeof batchSchema>;
-
-const locationOptions = [
-  { value: "New York", label: "New York" },
-  { value: "San Francisco", label: "San Francisco" },
-  { value: "Los Angeles", label: "Los Angeles" },
-  { value: "Chicago", label: "Chicago" },
-  { value: "Seattle", label: "Seattle" },
-];
-
-const statusOptions = [
-  { value: "pending", label: "Pending" },
-  { value: "ongoing", label: "Ongoing" },
-];
-
-// New options for session type
-const sessionTypeOptions = [
-  { value: "remote", label: "Remote" },
-  { value: "onsite", label: "Onsite" },
-];
+import { batchSchema, BatchFormData, statusOptions, sessionTypeOptions } from "../data/schema";
+import { locationOptions } from "../data/constants";
 
 export function BatchForm({ batchId }: { batchId?: string }) {
   const router = useRouter();
   const isEditMode = !!batchId;
+  const [dynamicLocationOptions, setDynamicLocationOptions] = useState(locationOptions);
+  const [dynamicStatusOptions, setDynamicStatusOptions] = useState(statusOptions);
+  const [dynamicSessionTypeOptions, setDynamicSessionTypeOptions] = useState(sessionTypeOptions);
 
   const { data: batchData, isLoading: isLoadingBatch } = useGetBatchByIdQuery(batchId!, {
     skip: !batchId,
@@ -72,7 +42,7 @@ export function BatchForm({ batchId }: { batchId?: string }) {
     resolver: zodResolver(batchSchema),
     defaultValues: {
       name: "",
-      batchCode: "", // This is fine, will be handled in onSubmit
+      batchCode: "",
       description: "",
       location: "",
       startDate: new Date(),
@@ -84,32 +54,115 @@ export function BatchForm({ batchId }: { batchId?: string }) {
     },
   });
 
-  useEffect(() => {
-    if (!batchId || !batchData) return;
+  // useEffect(() => {
+  //   if (!batchId || !batchData) return;
 
-    try {
-      form.reset({
-        name: batchData.name,
-        batchCode: batchData.batchCode || "", // Handle undefined as empty string
-        description: batchData.description || "",
-        location: batchData.location,
-        startDate: new Date(batchData.startDate),
-        endDate: new Date(batchData.endDate),
-        status: batchData.status,
-        isActive: batchData.isActive,
-        maxCapacity: batchData.maxCapacity,
-        sessionType: batchData.sessionType || "remote",
-      });
-    } catch (error) {
-      console.error("Error loading batch:", error);
-    }
-  }, [batchId, batchData, form]);
+  //   // Update location options to include the current location if it's not already there
+  //   if (batchData.location && !dynamicLocationOptions.some(opt => opt.value === batchData.location)) {
+  //     setDynamicLocationOptions(prev => [
+  //       { value: batchData.location, label: `${batchData.location} (Current)` },
+  //       ...prev
+  //     ]);
+  //   }
+
+  //   // Update status options to include the current status if it's not already there
+  //   if (batchData.status && !dynamicStatusOptions.some(opt => opt.value === batchData.status)) {
+  //     const statusLabel = batchData.status
+  //       .split('_')
+  //       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+  //       .join(' ');
+  //     setDynamicStatusOptions(prev => [
+  //       { value: batchData.status, label: `${statusLabel} (Current)` },
+  //       ...prev
+  //     ]);
+  //   }
+
+  //   // Update session type options to include the current session type if it's not already there
+  //   if (batchData.sessionType && !dynamicSessionTypeOptions.some(opt => opt.value === batchData.sessionType)) {
+  //     const sessionTypeLabel = batchData.sessionType.charAt(0).toUpperCase() + batchData.sessionType.slice(1);
+  //     setDynamicSessionTypeOptions(prev => [
+  //       { value: batchData.sessionType, label: `${sessionTypeLabel} (Current)` },
+  //       ...prev
+  //     ]);
+  //   }
+
+  //   try {
+  //     form.reset({
+  //       name: batchData.name,
+  //       batchCode: batchData.batchCode || "",
+  //       description: batchData.description || "",
+  //       location: batchData.location,
+  //       startDate: new Date(batchData.startDate),
+  //       endDate: new Date(batchData.endDate),
+  //       status: batchData.status,
+  //       isActive: batchData.isActive,
+  //       maxCapacity: batchData.maxCapacity,
+  //       sessionType: batchData.sessionType || "remote",
+  //     });
+  //   } catch (error) {
+  //     console.error("Error loading batch:", error);
+  //   }
+  // }, [batchId, batchData, form]);
+
+  // 1) Build dynamic options when batch loads
+useEffect(() => {
+  if (!batchId || !batchData) return;
+
+  if (batchData.location && !dynamicLocationOptions.some(opt => opt.value === batchData.location)) {
+    setDynamicLocationOptions(prev => [
+      { value: batchData.location, label: `${batchData.location} (Current)` },
+      ...prev
+    ]);
+  }
+
+  if (batchData.status && !dynamicStatusOptions.some(opt => opt.value === batchData.status)) {
+    const statusLabel = batchData.status
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+
+    setDynamicStatusOptions(prev => [
+      { value: batchData.status, label: `${statusLabel} (Current)` },
+      ...prev
+    ]);
+  }
+
+  if (batchData.sessionType && !dynamicSessionTypeOptions.some(opt => opt.value === batchData.sessionType)) {
+    const sessionTypeLabel = batchData.sessionType.charAt(0).toUpperCase() + batchData.sessionType.slice(1);
+
+    setDynamicSessionTypeOptions(prev => [
+      { value: batchData.sessionType, label: `${sessionTypeLabel} (Current)` },
+      ...prev
+    ]);
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [batchId, batchData]);
+
+
+// 2) AFTER options update, reset the form WITH correct values
+useEffect(() => {
+  if (!batchData) return;
+
+  form.reset({
+    name: batchData.name,
+    batchCode: batchData.batchCode || "",
+    description: batchData.description || "",
+    location: batchData.location,
+    startDate: new Date(batchData.startDate),
+    endDate: new Date(batchData.endDate),
+    status: batchData.status,
+    isActive: batchData.isActive,
+    maxCapacity: batchData.maxCapacity,
+    sessionType: batchData.sessionType || "remote",
+  });
+}, [batchData, form]);
+
 
   const onSubmit = async (values: BatchFormData) => {
     try {
       const payload: BatchPayload = {
         name: values.name,
-        batchCode: values.batchCode || undefined, // Handle empty string as undefined
+        batchCode: values.batchCode || undefined,
         description: values.description || "",
         location: values.location,
         startDate: values.startDate.toISOString(),
@@ -129,12 +182,10 @@ export function BatchForm({ batchId }: { batchId?: string }) {
       router.push("/admin/batches");
     } catch (error: any) {
       console.error(`Failed to ${isEditMode ? "update" : "create"} batch:`, error);
-      // Log more detailed error information
       if (error?.data) {
         console.error("API Error Details:", error.data);
       }
       
-      // Extract error message from different possible sources
       let errorMessage = `Failed to ${isEditMode ? "update" : "create"} batch. Please try again.`;
       if (error?.data?.message) {
         errorMessage = error.data.message;
@@ -204,13 +255,13 @@ export function BatchForm({ batchId }: { batchId?: string }) {
                 <Field.Select
                   name="location"
                   label="Location"
-                  options={locationOptions}
+                  options={dynamicLocationOptions}
                   required
                 />
                 <Field.Select
                   name="sessionType"
                   label="Session Type"
-                  options={sessionTypeOptions}
+                  options={dynamicSessionTypeOptions}
                   required
                 />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -224,7 +275,7 @@ export function BatchForm({ batchId }: { batchId?: string }) {
                 <Field.Select
                   name="status"
                   label="Status"
-                  options={statusOptions}
+                  options={dynamicStatusOptions}
                   required
                 />
                 <Field.Switch

@@ -54,6 +54,19 @@ export function ApplicationView() {
   const handleConfirmAction = async () => {
     if (!confirmDialog.action || !confirmDialog.userId) return;
     
+    // Check if the user data is still available and if the application has already been processed
+    const user = users.find(u => u.id === confirmDialog.userId);
+    if (user && (user.applicationStatus === 'approved' || user.applicationStatus === 'rejected')) {
+      toast.error("This application has already been processed and cannot be modified.");
+      setConfirmDialog({
+        open: false,
+        action: null,
+        userId: '',
+        userName: '',
+      });
+      return;
+    }
+    
     setIsUpdating(true);
     try {
       const status = confirmDialog.action === 'approve' ? 'approved' : 'rejected';
@@ -83,7 +96,19 @@ export function ApplicationView() {
     columnHelper.accessor((row) => row.name, {
       id: "name",
       header: "Name",
-      cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
+      cell: ({ getValue, row }) => {
+        const isProcessed = row.original.applicationStatus === 'approved' || row.original.applicationStatus === 'rejected';
+        return (
+          <div className="flex items-center gap-2">
+            <span className="font-medium">{getValue()}</span>
+            {isProcessed && (
+              <span className="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded">
+                Processed
+              </span>
+            )}
+          </div>
+        );
+      },
     }),
     columnHelper.accessor((row) => row.email, {
       id: "email",
@@ -146,6 +171,9 @@ export function ApplicationView() {
       header: "Actions",
       cell: ({ row }) => {
         const user = row.original;
+        // Check if the application has already been processed
+        const isProcessed = user.applicationStatus === 'approved' || user.applicationStatus === 'rejected';
+        
         return (
           <div className="flex items-center gap-2">
             <Button
@@ -161,8 +189,9 @@ export function ApplicationView() {
               variant="ghost"
               size="icon"
               onClick={() => handleApprove(user.id, user.name)}
-              title="Approve application"
+              title={isProcessed ? "Application already processed" : "Approve application"}
               className="h-8 w-8 text-green-600 hover:bg-green-50 hover:text-green-700"
+              disabled={isProcessed}
             >
               <CheckCircle className="h-4 w-4" />
             </Button>
@@ -170,8 +199,9 @@ export function ApplicationView() {
               variant="ghost"
               size="icon"
               onClick={() => handleReject(user.id, user.name)}
-              title="Reject application"
+              title={isProcessed ? "Application already processed" : "Reject application"}
               className="h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700"
+              disabled={isProcessed}
             >
               <XCircle className="h-4 w-4" />
             </Button>

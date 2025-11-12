@@ -17,6 +17,9 @@ import {
 import { AppSidebar } from "./app-sidebar";
 import { Bell, Settings, LogOut, User, ChevronDown } from "lucide-react";
 import Link from "next/link";
+import { useSafeSession } from "@/hooks/use-session";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export type DashboardLayoutProps = {
   children: React.ReactNode;
@@ -27,6 +30,47 @@ export function DashboardLayout({
   children,
   userType = "admin",
 }: DashboardLayoutProps) {
+  const { data: session, status } = useSafeSession();
+  const router = useRouter();
+  
+  // Only check for explicit logout, allow direct URL access for admin
+  useEffect(() => {
+    const isLoggedOut = sessionStorage.getItem("isLoggedOut");
+    if (isLoggedOut === "true") {
+      sessionStorage.removeItem("isLoggedOut");
+      window.location.replace("/auth/sign-in");
+    }
+  }, []);
+  
+  // Get user info from session
+  const userName = session?.user?.name || "User";
+  const userEmail = session?.user?.email || "";
+  const userAvatar = session?.user?.picture || session?.user?.avatar || "";
+  
+  // Generate initials from name
+  const getInitials = (name: string) => {
+    const parts = name.split(" ");
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+  
+  const userInitials = getInitials(userName);
+
+  // Handle logout
+  const handleLogout = () => {
+    // Clear all session data from localStorage
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+    
+    // Set a flag to indicate user has logged out
+    sessionStorage.setItem("isLoggedOut", "true");
+    
+    // Clear all history and redirect to login
+    window.location.href = "/auth/sign-in";
+  };
   return (
     <SidebarProvider>
       <AppSidebar userType={userType} />
@@ -51,17 +95,17 @@ export function DashboardLayout({
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg p-2 transition-colors group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                   <Avatar className="h-8 w-8 ring-2 ring-slate-200 dark:ring-slate-700 group-hover:ring-blue-500 transition-all">
-                    <AvatarImage src="/avatar.png" alt="User Avatar" />
+                    {userAvatar && <AvatarImage src={userAvatar} alt={userName} />}
                     <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
-                      AB
+                      {userInitials}
                     </AvatarFallback>
                   </Avatar>
                   <div className="hidden sm:flex flex-col text-left">
                     <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                      Abu Bakar
+                      {userName}
                     </span>
                     <span className="text-xs text-slate-500 dark:text-slate-400">
-                      abubakar@example.com
+                      {userEmail}
                     </span>
                   </div>
                   <ChevronDown className="h-4 w-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors" />
@@ -76,17 +120,17 @@ export function DashboardLayout({
                 <DropdownMenuLabel className="px-2 py-1.5">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src="/avatar.png" alt="User Avatar" />
+                      {userAvatar && <AvatarImage src={userAvatar} alt={userName} />}
                       <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
-                        AB
+                        {userInitials}
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                        Abu Bakar
+                        {userName}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        abubakar@example.com
+                        {userEmail}
                       </p>
                     </div>
                   </div>
@@ -109,7 +153,10 @@ export function DashboardLayout({
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-slate-200 dark:bg-slate-700" />
-                <DropdownMenuItem className="px-2 py-2 cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 rounded-md focus:bg-red-50 dark:focus:bg-red-900/20">
+                <DropdownMenuItem 
+                  className="px-2 py-2 cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 rounded-md focus:bg-red-50 dark:focus:bg-red-900/20"
+                  onClick={handleLogout}
+                >
                   <LogOut className="h-4 w-4 mr-3" />
                   <span>Logout</span>
                 </DropdownMenuItem>

@@ -66,13 +66,16 @@ export function QuestionsListView({
     );
   }
 
+  // Sort questions by questionNo to ensure correct order
+  const sortedQuestions = [...questions].sort((a, b) => a.questionNo - b.questionNo);
+
   return (
     <div
       ref={scrollContainerRef}
       className="space-y-1.5 overflow-y-auto scroll-smooth"
       style={{ maxHeight }}
     >
-      {questions.map((question, index) => (
+      {sortedQuestions.map((question, index) => (
         <div
           key={index}
           className="border-b border-gray-150 py-3 bg-white hover:bg-gray-50 transition-colors duration-150 last:border-b-0"

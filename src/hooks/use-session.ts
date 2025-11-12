@@ -1,40 +1,97 @@
-import type { Session } from 'next-auth';
-import type { GetSessionParams, SessionContextValue} from 'next-auth/react';
-import { getSession, useSession } from 'next-auth/react';
+import { useState, useEffect } from 'react';
 
-/**
- * Safely fetches the session during SSR or at runtime.
- * @param {GetSessionParams | undefined} context - The context object provided by Next.js (optional).
- * @returns {Promise<Session | null>} The session object or null if not available.
- */
-export async function getSafeSession(
-  context?: GetSessionParams
-): Promise<Session | null> {
-  if (context && context.req) {
-    return getSession(context); // Directly return the promise
-  }
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  [key: string]: any;
+}
 
-  if (typeof window === 'undefined') {
-    return null; // Return null during SSR/static build
-  }
+interface Session {
+  user: User | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+}
 
-  return getSession(); // Directly return the promise
+export interface SessionContextValue {
+  data: Session | null;
+  status: 'loading' | 'authenticated' | 'unauthenticated';
+  update: () => Promise<Session | null>;
 }
 
 /**
- * A safer version of the useSession hook that prevents fetching during SSR or static builds.
+ * A custom hook that retrieves session data from localStorage.
  * @returns {SessionContextValue} An object containing session data, status, and update function.
  */
 export function useSafeSession(): SessionContextValue {
-  // Always call `useSession` unconditionally
-  const session = useSession();
+  const [session, setSession] = useState<Session | null>(null);
+  const [status, setStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      setStatus('loading');
+      return;
+    }
+
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      const refreshToken = localStorage.getItem('refreshToken');
+      const userStr = localStorage.getItem('user');
+
+      if (accessToken && refreshToken && userStr) {
+        const user = JSON.parse(userStr);
+        setSession({
+          user,
+          accessToken,
+          refreshToken,
+        });
+        setStatus('authenticated');
+      } else {
+        setSession(null);
+        setStatus('unauthenticated');
+      }
+    } catch (error) {
+      console.error('Error reading session from localStorage:', error);
+      setSession(null);
+      setStatus('unauthenticated');
+    }
+  }, []);
+
+  const update = async (): Promise<Session | null> => {
+    // Re-read from localStorage
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      const refreshToken = localStorage.getItem('refreshToken');
+      const userStr = localStorage.getItem('user');
+
+      if (accessToken && refreshToken && userStr) {
+        const user = JSON.parse(userStr);
+        const newSession = {
+          user,
+          accessToken,
+          refreshToken,
+        };
+        setSession(newSession);
+        setStatus('authenticated');
+        return newSession;
+      } else {
+        setSession(null);
+        setStatus('unauthenticated');
+        return null;
+      }
+    } catch (error) {
+      console.error('Error updating session:', error);
+      setSession(null);
+      setStatus('unauthenticated');
+      return null;
+    }
+  };
 
   if (typeof window === 'undefined') {
     // Mock behavior during SSR/static builds
-    const mockUpdate = async (): Promise<Session | null> => null;
-    return { data: null, status: 'loading', update: mockUpdate };
+    return { data: null, status: 'loading', update: async () => null };
   }
 
-  // Return the actual session during runtime
-  return session;
+  return { data: session, status, update };
 }

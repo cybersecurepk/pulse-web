@@ -103,21 +103,6 @@ export function AvailabilityStep({ form }: AvailabilityStepProps) {
           showErrorOnAll={true}
         />
       </div>
-      <div className="border-t pt-4">
-        <h3 className="text-lg font-semibold mb-2">
-          Consent <span className="text-destructive">*</span>
-        </h3>
-        <CheckboxField
-          name="consent"
-          options={[
-            {
-              id: "consent",
-              label: "I consent to the use of my Personal Identifiable Information (PII)",
-            },
-          ]}
-          required
-        />
-      </div>
     </div>
   );
 }

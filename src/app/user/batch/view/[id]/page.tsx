@@ -1,4 +1,4 @@
-import { UserBatchDetails } from "@/feature/user/batch/view/components/user-batch-details";
+import { UserBatchDetails } from "@/feature/user/batch/components/user-batch-details";
 
 export const metadata = { title: `My Batch` };
 

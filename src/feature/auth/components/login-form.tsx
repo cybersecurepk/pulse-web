@@ -11,6 +11,10 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { PulseLogo } from "@/layouts/dashboard/pulse-logo";
+import { useLoginMutation, useVerifyOtpMutation, useResendOtpMutation } from "@/service/rtk-query/auth/auth-api";
+import { OtpVerification } from "./otp-verification";
+import { useRouter } from "next/navigation";
+import { useToast } from "../../../hooks/use-toast";
 
 // ✅ Zod schema
 const loginSchema = z.object({
@@ -18,38 +22,116 @@ const loginSchema = z.object({
     .string()
     .min(1, { message: "Email address required" })
     .email({ message: "Invalid email format" }),
-  password: z
-    .string()
-    .min(1, { message: "Password required" })
-    .min(8, { message: "Must be at least 8 characters" }),
 });
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const [passwordVisibility, setPasswordVisibility] = useState(false);
+  const [showOtpScreen, setShowOtpScreen] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const [login, { isLoading: isLoggingIn }] = useLoginMutation();
+  const [verifyOtp, { isLoading: isVerifying }] = useVerifyOtpMutation();
+  const [resendOtp, { isLoading: isResending }] = useResendOtpMutation();
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
-      password: "",
     },
   });
 
-  const onSubmit = (values: z.infer<typeof loginSchema>) => {
-    console.log("Form submitted:", values);
-    alert("Form submitted successfully!");
+  const onSubmit = async (values: z.infer<typeof loginSchema>) => {
+    try {
+      const response = await login({ email: values.email }).unwrap();
+      setUserEmail(values.email);
+      localStorage.setItem("pendingLoginEmail", values.email);
+      setShowOtpScreen(true);
+      toast({
+        title: "Success",
+        description: response.message || "OTP sent to your email",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.data?.message || "Failed to send OTP. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const togglePasswordVisibility = () => {
-    setPasswordVisibility(!passwordVisibility);
+  const handleVerifyOtp = async (otp: string) => {
+    try {
+      const response = await verifyOtp({ email: userEmail, otp }).unwrap();
+      
+      // Save tokens and user data
+      localStorage.setItem("accessToken", response.accessToken);
+      localStorage.setItem("refreshToken", response.refreshToken);
+      localStorage.setItem("user", JSON.stringify(response.user));
+      localStorage.removeItem("pendingLoginEmail");
+
+      toast({
+        title: "Success",
+        description: "Login successful!",
+      });
+
+      // Redirect based on role
+      if (response.user.role === "admin" || response.user.role === "super_admin") {
+        router.push("/admin/dashboard");
+      } else {
+        router.push("/user/dashboard");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.data?.message || "Invalid OTP. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleResendOtp = async () => {
+    try {
+      const response = await resendOtp({ email: userEmail }).unwrap();
+      toast({
+        title: "Success",
+        description: response.message || "New OTP sent to your email",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.data?.message || "Failed to resend OTP.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleBackToLogin = () => {
+    setShowOtpScreen(false);
+    setUserEmail("");
+    localStorage.removeItem("pendingLoginEmail");
   };
 
   const handleGoogleSignIn = () => {
     window.location.href = "http://localhost:3000/auth/google/login";
   };
+
+  if (showOtpScreen) {
+    return (
+      <OtpVerification
+        email={userEmail}
+        onVerify={handleVerifyOtp}
+        onResend={handleResendOtp}
+        onBack={handleBackToLogin}
+        isVerifying={isVerifying}
+        isResending={isResending}
+        className={className}
+      />
+    );
+  }
 
   return (
     <div className={cn("max-w-lg w-full space-y-8", className)} {...props}>
@@ -78,44 +160,15 @@ export function LoginForm({
                 placeholder="your-email@domain.com"
                 required
               />
-              <Field.Text
-                name="password"
-                label="Password"
-                type={passwordVisibility ? "text" : "password"}
-                placeholder="Enter your password"
-                trailingIcon={
-                  passwordVisibility ? (
-                    <EyeOff
-                      className="h-5 w-5 cursor-pointer"
-                      onClick={togglePasswordVisibility}
-                    />
-                  ) : (
-                    <Eye
-                      className="h-5 w-5 cursor-pointer"
-                      onClick={togglePasswordVisibility}
-                    />
-                  )
-                }
-                required
-              />
-            </div>
-
-            {/* Forgot password */}
-            <div className="mt-6 text-right">
-              <a
-                href="#"
-                className="text-base font-medium text-black hover:text-gray-800"
-              >
-                Forgot password?
-              </a>
             </div>
 
             {/* Primary button */}
             <Button
               type="submit"
+              disabled={isLoggingIn}
               className="w-full py-3 text-lg font-medium bg-[#6366f1] hover:bg-[#4f46e5] text-white rounded-md transition duration-150 ease-in-out"
             >
-              Sign In
+              {isLoggingIn ? "Sending OTP..." : "Continue"}
             </Button>
 
             {/* Google Sign-In */}

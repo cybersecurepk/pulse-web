@@ -1,5 +1,11 @@
 import { appApi } from "@/service/rtk-base-api-service";
-import { LoginRequest, LoginResponse } from "./auth-type";
+import { 
+  LoginRequest, 
+  LoginResponse, 
+  VerifyOtpRequest, 
+  ResendOtpRequest, 
+  AuthResponse 
+} from "./auth-type";
 
 const authApi = appApi
   .enhanceEndpoints({
@@ -7,14 +13,28 @@ const authApi = appApi
   })
   .injectEndpoints({
     endpoints: (build) => ({
-      login: build.mutation<LoginResponse | any, LoginRequest>({
+      login: build.mutation<LoginResponse, LoginRequest>({
         query: (payload) => ({
           url: "/auth/login",
           body: payload,
-          method: "Post",
+          method: "POST",
+        }),
+      }),
+      verifyOtp: build.mutation<AuthResponse, VerifyOtpRequest>({
+        query: (payload) => ({
+          url: "/auth/verify-otp",
+          body: payload,
+          method: "POST",
+        }),
+      }),
+      resendOtp: build.mutation<LoginResponse, ResendOtpRequest>({
+        query: (payload) => ({
+          url: "/auth/resend-otp",
+          body: payload,
+          method: "POST",
         }),
       }),
     }),
   });
 
-export const { useLoginMutation } = authApi;
+export const { useLoginMutation, useVerifyOtpMutation, useResendOtpMutation } = authApi;

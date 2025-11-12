@@ -10,14 +10,28 @@ function GoogleCallbackContent() {
   useEffect(() => {
     const token = searchParams.get("token");
     const refreshToken = searchParams.get("refreshToken");
+    const userParam = searchParams.get("user");
 
-    if (token && refreshToken) {
-      // Store tokens in localStorage
-      localStorage.setItem("accessToken", token);
-      localStorage.setItem("refreshToken", refreshToken);
+    if (token && refreshToken && userParam) {
+      try {
+        // Decode user data from base64
+        const userData = JSON.parse(atob(decodeURIComponent(userParam)));
+        
+        // Store tokens and user data in localStorage
+        localStorage.setItem("accessToken", token);
+        localStorage.setItem("refreshToken", refreshToken);
+        localStorage.setItem("user", JSON.stringify(userData));
 
-      // Redirect to user dashboard
-      router.push("/user/dashboard");
+        // Redirect based on user role
+        if (userData.role === "admin" || userData.role === "super_admin") {
+          router.push("/admin/dashboard");
+        } else {
+          router.push("/user/dashboard");
+        }
+      } catch (error) {
+        console.error("Error processing user data:", error);
+        router.push("/auth/sign-in?error=invalid_data");
+      }
     } else {
       // If no token, redirect to sign in page
       router.push("/auth/sign-in");

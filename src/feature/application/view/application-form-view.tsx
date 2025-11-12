@@ -50,7 +50,6 @@ const AVAILABILITY_FIELDS: (keyof ApplicationFormData)[] = [
   "blueTeam",
   "redTeam",
   "grc",
-  "consent",
 ];
 
 export function ApplicationFormView() {
@@ -113,8 +112,9 @@ export function ApplicationFormView() {
         fieldsToValidate = AVAILABILITY_FIELDS;
         break;
       case 4:
-        // Review step - no validation needed
-        return true;
+        // Review step - validate consent field
+        fieldsToValidate = ["consent"];
+        break;
       default:
         return true;
     }
@@ -159,6 +159,13 @@ export function ApplicationFormView() {
 
   // Simple click handler for the submit button
   const handleFormSubmit = async () => {
+    // Validate consent field before submission
+    const isValid = await validateCurrentStep();
+    
+    if (!isValid) {
+      return;
+    }
+    
     // Get the form data and submit it
     const data = form.getValues();
     await handleSubmit(data);
@@ -175,7 +182,7 @@ export function ApplicationFormView() {
       case 3:
         return <AvailabilityStep form={form} />;
       case 4:
-        return <ReviewStep data={form.getValues()} />;
+        return <ReviewStep data={form.getValues()} form={form} />;
       default:
         return null;
     }
