@@ -1,7 +1,10 @@
 export enum UserRole {
+  SUPER_ADMIN = "super_admin",
   ADMIN = "admin",
   COMPANY_ADMIN = "company_admin",
   EMPLOYEE = "employee",
+  APPLICANT = "applicant",
+  USER = "user",
 }
 
 export interface Company {
@@ -35,6 +38,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  role: "super_admin" | "admin" | "company_admin" | "employee" | "applicant" | "user";
   gender: "male" | "female" | "other";
   primaryPhone: string;
   secondaryPhone?: string;

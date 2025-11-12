@@ -23,15 +23,20 @@ import { useEffect } from "react";
 
 export type DashboardLayoutProps = {
   children: React.ReactNode;
-  userType?: "admin" | "user";
+  userType?: "super_admin" | "user";
 };
 
 export function DashboardLayout({
   children,
-  userType = "admin",
+  userType = "super_admin",
 }: DashboardLayoutProps) {
   const { data: session, status } = useSafeSession();
   const router = useRouter();
+  
+  // Debug log to see what session data we have
+  useEffect(() => {
+    console.log('Dashboard session data:', session);
+  }, [session]);
   
   // Only check for explicit logout, allow direct URL access for admin
   useEffect(() => {
@@ -64,6 +69,7 @@ export function DashboardLayout({
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
+    localStorage.removeItem("pendingLoginEmail");
     
     // Set a flag to indicate user has logged out
     sessionStorage.setItem("isLoggedOut", "true");
@@ -71,6 +77,7 @@ export function DashboardLayout({
     // Clear all history and redirect to login
     window.location.href = "/auth/sign-in";
   };
+  
   return (
     <SidebarProvider>
       <AppSidebar userType={userType} />

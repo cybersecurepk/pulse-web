@@ -25,6 +25,11 @@ export interface InputFieldProps {
   disabled?: boolean;
   leadingIcon?: ReactNode;
   trailingIcon?: ReactNode;
+  inputMode?: "none" | "text" | "tel" | "url" | "email" | "numeric" | "decimal" | "search";
+  maxLength?: number;
+  hideError?: boolean;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
 }
 
 export function InputField({
@@ -38,6 +43,11 @@ export function InputField({
   disabled = false,
   leadingIcon,
   trailingIcon,
+  inputMode,
+  maxLength,
+  hideError = false,
+  onChange,
+  onKeyDown,
   ...props
 }: InputFieldProps) {
   const { control } = useFormContext();
@@ -62,6 +72,8 @@ export function InputField({
               <Input
                 {...field}
                 type={type}
+                inputMode={inputMode}
+                maxLength={maxLength}
                 className={cn(
                   "focus:border-blue-500 focus:ring-1 focus:ring-blue-200 border-gray-300",
                   leadingIcon && "pl-10",
@@ -77,7 +89,9 @@ export function InputField({
                   } else {
                     field.onChange(e.target.value);
                   }
+                  onChange?.(e);
                 }}
+                onKeyDown={onKeyDown}
                 disabled={disabled}
                 {...props}
               />
@@ -89,7 +103,7 @@ export function InputField({
             </div>
           </FormControl>
           {description && <FormDescription>{description}</FormDescription>}
-          <FormMessage />
+          {!hideError && <FormMessage />}
         </FormItem>
       )}
     />
