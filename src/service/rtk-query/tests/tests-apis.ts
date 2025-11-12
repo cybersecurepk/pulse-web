@@ -86,6 +86,40 @@ const testsApi = appApi
         }),
         providesTags: (result, error, testId) => [{ type: "Tests", id: `attempt-${testId}` }],
       }),
+      hasUserAttemptedTest: build.query<boolean, { testId: string; userId: string }>({
+        query: ({ testId, userId }) => ({
+          url: `/tests/${testId}/user/${userId}/attempted`,
+          method: "GET",
+        }),
+      }),
+      getUserTestAttempts: build.query<any[], string>({
+        query: (userId) => ({
+          url: `/tests/user/${userId}/attempts`,
+          method: "GET",
+        }),
+      }),
+      // Admin test results endpoints
+      getAllTestAttempts: build.query<any[], void>({
+        query: () => {
+          console.log('Calling getAllTestAttempts endpoint');
+          return {
+            url: `/tests/attempts`,
+            method: "GET",
+          };
+        },
+      }),
+      getTestAttemptsByTestId: build.query<any[], string>({
+        query: (testId) => ({
+          url: `/tests/${testId}/attempts`,
+          method: "GET",
+        }),
+      }),
+      getUnattemptedTestsForUser: build.query<TestResponse[], string>({
+        query: (userId) => ({
+          url: `/tests/user/${userId}/unattempted`,
+          method: "GET",
+        }),
+      }),
       submitTestAttempt: build.mutation<
         { totalQuestions: number; correctAnswers: number; wrongAnswers: number; score: number; passed: boolean; passingCriteria: number },
         { testId: string; userId: string; answers: Record<string, string>; timeSpent?: number }
@@ -111,5 +145,10 @@ export const {
   useAddTestScreenshotMutation,
   useGetTestScreenshotsQuery,
   useGetTestForAttemptQuery,
+  useHasUserAttemptedTestQuery,
+  useGetUserTestAttemptsQuery,
+  useGetAllTestAttemptsQuery,
+  useGetTestAttemptsByTestIdQuery,
+  useGetUnattemptedTestsForUserQuery,
   useSubmitTestAttemptMutation,
 } = testsApi;

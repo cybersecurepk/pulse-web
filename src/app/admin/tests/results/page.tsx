@@ -1,7 +1,9 @@
-import { TestResultsView } from "@/feature/admin/tests/view";
+import { TestResultsView } from "@/feature/admin/tests/view/test-results-view";
 
-export const metadata = { title: `Test Results` };
-
-export default function Page() {
-  return <TestResultsView />;
+export default function TestResultsPage() {
+  return (
+    <div className="container mx-auto py-6">
+      <TestResultsView />
+    </div>
+  );
 }

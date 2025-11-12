@@ -25,8 +25,13 @@ export function ApplicationView() {
   const [isUpdating, setIsUpdating] = useState(false);
   
   // Fetch real users from backend
-  const { data: users = [], isLoading } = useGetAllUsersQuery();
+  const { data: allUsers = [], isLoading } = useGetAllUsersQuery();
   const [updateUser] = useUpdateUserMutation();
+
+  // Filter to only show applicants and users (not admins, super_admins, company_admins, or employees)
+  const users = allUsers.filter(
+    (user) => user.role === 'applicant' || user.role === 'user'
+  );
 
   const handleApprove = async (userId: string, userName: string) => {
     setConfirmDialog({

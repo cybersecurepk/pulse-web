@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { ActiveTestsView } from "./active-tests-view";
-import { useGetBatchTestsByUserIdQuery } from "@/service/rtk-query/batch-tests/batch-test-api";
 import { useSafeSession } from "@/hooks/use-session";
 import { BookOpen } from "lucide-react";
 import {
   Card,
   CardContent,
 } from "@/components/ui/card";
+import { useSearchParams } from "next/navigation";
+import { useGetUnattemptedTestsForUserQuery } from "@/service/rtk-query/tests/tests-apis";
 
 interface UserTestsViewProps {
   userId?: string;
@@ -16,37 +17,29 @@ interface UserTestsViewProps {
 
 export function UserTestsView({ userId }: UserTestsViewProps) {
   const { data: session } = useSafeSession();
+  const searchParams = useSearchParams();
+  const refresh = searchParams.get('refresh');
   
   // Use session user ID if available, otherwise fallback to prop
   const effectiveUserId = session?.user?.id || userId;
-  
-  const { data: batchTestsData = [], isLoading, isError, error } = useGetBatchTestsByUserIdQuery(effectiveUserId!, {
+
+  // Use the unattempted tests query to trigger refresh when needed
+  const { refetch } = useGetUnattemptedTestsForUserQuery(effectiveUserId || "", {
     skip: !effectiveUserId,
   });
 
-  // Filter tests into active based on the test's isActive property
-  const activeTests = batchTestsData
-    .filter(bt => bt.test?.isActive)
-    .map(bt => bt.test);
+  // Refresh data when the refresh parameter is present
+  useEffect(() => {
+    if (refresh === 'true' && effectiveUserId) {
+      refetch();
+      // Remove the refresh parameter from URL
+      if (typeof window !== 'undefined') {
+        window.history.replaceState({}, document.title, "/user/tests");
+      }
+    }
+  }, [refresh, effectiveUserId, refetch]);
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">My Tests</h1>
-          <p className="text-muted-foreground">
-            View and manage your active tests
-          </p>
-        </div>
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-pulse">Loading tests...</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (isError) {
-    console.error("Error fetching tests:", error);
+  if (!effectiveUserId) {
     return (
       <div className="space-y-6">
         <div>
@@ -58,9 +51,9 @@ export function UserTestsView({ userId }: UserTestsViewProps) {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Error Loading Tests</h3>
+            <h3 className="text-lg font-semibold mb-2">User Not Found</h3>
             <p className="text-muted-foreground text-center mb-4">
-              There was an error loading your tests. Please try again later.
+              Please log in to view your tests.
             </p>
           </CardContent>
         </Card>
@@ -76,7 +69,7 @@ export function UserTestsView({ userId }: UserTestsViewProps) {
           View and manage your active tests
         </p>
       </div>
-      <ActiveTestsView tests={activeTests} />
+      <ActiveTestsView userId={effectiveUserId} onRefetch={refetch} />
     </div>
   );
 }

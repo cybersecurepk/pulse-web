@@ -32,14 +32,14 @@ interface AnswerData {
 export function TestAttemptView({ testId }: TestAttemptViewProps) {
   const router = useRouter();
   const { data: session } = useSafeSession();
-  const { data: test, isLoading } = useGetTestForAttemptQuery(testId);
+  const { data: test, isLoading, error: testError } = useGetTestForAttemptQuery(testId);
   const [submitTestAttempt] = useSubmitTestAttemptMutation();
   
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<AnswerData>({});
   const [timeLeft, setTimeLeft] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [testStartTime] = useState<number>(Date.now());
+  const [testStartTime, setTestStartTime] = useState<number>(0);
   const [showResults, setShowResults] = useState(false);
   const [testResults, setTestResults] = useState<{
     score: number;
@@ -94,6 +94,13 @@ export function TestAttemptView({ testId }: TestAttemptViewProps) {
       allAnswers: methods.getValues(),
     });
     
+    // Check if current question has an answer selected
+    const currentAnswer = methods.getValues(currentQuestion?.id || "");
+    if (!currentAnswer) {
+      toast.error("Please select an answer before proceeding");
+      return;
+    }
+    
     if (isLastQuestion) {
       handleSubmit();
     } else if (currentQuestionIndex < sortedQuestions.length - 1) {
@@ -102,7 +109,7 @@ export function TestAttemptView({ testId }: TestAttemptViewProps) {
       console.log("Already at or past last question, submitting");
       handleSubmit();
     }
-  }, [isLastQuestion, currentQuestionIndex, sortedQuestions.length, methods]);
+  }, [isLastQuestion, currentQuestionIndex, sortedQuestions.length, methods, currentQuestion?.id]);
 
   // Timer countdown
   useEffect(() => {
@@ -202,6 +209,30 @@ export function TestAttemptView({ testId }: TestAttemptViewProps) {
           <Loader2 className="h-6 w-6 animate-spin mr-2" />
           <p>Loading test...</p>
         </div>
+      </div>
+    );
+  }
+
+  // Handle error when fetching test
+  if (testError) {
+    const errorMessage = testError && typeof testError === 'object' && 'status' in testError 
+      ? "You may have already attempted this test or the test is not available."
+      : "Failed to load the test. Please try again later.";
+    
+    return (
+      <div className="container mx-auto p-6 max-w-4xl">
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Error Loading Test</h3>
+            <p className="text-muted-foreground text-center mb-4">
+              {errorMessage}
+            </p>
+            <Button onClick={() => router.push("/user/tests")}>
+              Back to Tests
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -322,7 +353,7 @@ export function TestAttemptView({ testId }: TestAttemptViewProps) {
               </div>
               <Button
                 onClick={handleNext}
-                disabled={isSubmitting}
+                disabled={isSubmitting || !methods.getValues(currentQuestion?.id || "")}
                 size="lg"
               >
                 {isSubmitting ? (
@@ -372,7 +403,7 @@ export function TestAttemptView({ testId }: TestAttemptViewProps) {
         confirmText="OK"
         onConfirm={() => {
           setShowResults(false);
-          router.push("/user/tests");
+          router.push("/user/tests?refresh=true");
         }}
       >
         {/* Score Display */}

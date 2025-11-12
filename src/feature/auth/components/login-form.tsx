@@ -7,14 +7,14 @@ import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { PulseLogo } from "@/layouts/dashboard/pulse-logo";
 import { useLoginMutation, useVerifyOtpMutation, useResendOtpMutation } from "@/service/rtk-query/auth/auth-api";
 import { OtpVerification } from "./otp-verification";
-import { useRouter } from "next/navigation";
-import { useToast } from "../../../hooks/use-toast";
+import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 
 // ✅ Zod schema
 const loginSchema = z.object({
@@ -31,7 +31,7 @@ export function LoginForm({
   const [showOtpScreen, setShowOtpScreen] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   const router = useRouter();
-  const { toast } = useToast();
+  const searchParams = useSearchParams();
 
   const [login, { isLoading: isLoggingIn }] = useLoginMutation();
   const [verifyOtp, { isLoading: isVerifying }] = useVerifyOtpMutation();
@@ -44,22 +44,62 @@ export function LoginForm({
     },
   });
 
+  const [hasShownError, setHasShownError] = useState(false);
+
+  useEffect(() => {
+    // 🔥 Ensure we only show the error once
+    if (hasShownError) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get("error");
+
+    if (!error) return;
+
+    // ✅ Mark as shown to prevent duplicate toasts
+    setHasShownError(true);
+
+    // ✅ Show toast based on error type
+    setTimeout(() => {
+      switch (error) {
+        case "not_approved":
+          toast.error("Account Not Approved: Your account is not approved yet.", { duration: 5000 });
+          break;
+        case "auth_failed":
+          toast.error("Authentication Failed: Failed to authenticate. Please try again.", { duration: 5000 });
+          break;
+        case "google_auth_failed":
+          toast.error("Google Authentication Failed: Failed to sign in with Google. Please try again.", { duration: 5000 });
+          break;
+        case "invalid_data":
+          toast.error("Invalid Data: Received invalid user data. Please try again.", { duration: 5000 });
+          break;
+        case "invalid_user":
+          toast.error("Invalid User: Something went wrong with your account. Please contact support.", { duration: 5000 });
+          break;
+        case "network_error":
+          toast.error("Network Error: Please check your connection and try again.", { duration: 5000 });
+          break;
+        default:
+          toast.error("Error: An unexpected error occurred. Please try again.", { duration: 5000 });
+      }
+
+      // ✅ Remove the error param after the toast shows
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete("error");
+      window.history.replaceState({}, document.title, newUrl.toString());
+    }, 100); // Small delay to ensure toast system is ready
+  }, []); // Empty dependency array
+
+
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
     try {
       const response = await login({ email: values.email }).unwrap();
       setUserEmail(values.email);
       localStorage.setItem("pendingLoginEmail", values.email);
       setShowOtpScreen(true);
-      toast({
-        title: "Success",
-        description: response.message || "OTP sent to your email",
-      });
+      toast.success(response.message || "OTP sent to your email", { duration: 5000 });
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.data?.message || "Failed to send OTP. Please try again.",
-        variant: "destructive",
-      });
+      toast.error(error.data?.message || "Failed to send OTP. Please try again.", { duration: 5000 });
     }
   };
 
@@ -67,45 +107,36 @@ export function LoginForm({
     try {
       const response = await verifyOtp({ email: userEmail, otp }).unwrap();
       
+      // Clear any existing logout flag
+      sessionStorage.removeItem("isLoggedOut");
+      
       // Save tokens and user data
       localStorage.setItem("accessToken", response.accessToken);
       localStorage.setItem("refreshToken", response.refreshToken);
       localStorage.setItem("user", JSON.stringify(response.user));
       localStorage.removeItem("pendingLoginEmail");
 
-      toast({
-        title: "Success",
-        description: "Login successful!",
-      });
+      toast.success("Login successful!", { duration: 5000 });
 
-      // Redirect based on role
-      if (response.user.role === "admin" || response.user.role === "super_admin") {
+      // Redirect based on role - using correct role values
+      if (response.user.role === "super_admin") {
         router.push("/admin/dashboard");
       } else {
         router.push("/user/dashboard");
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.data?.message || "Invalid OTP. Please try again.",
-        variant: "destructive",
-      });
+      toast.error(error.data?.message || "Invalid OTP. Please try again.", { duration: 5000 });
     }
   };
 
   const handleResendOtp = async () => {
     try {
       const response = await resendOtp({ email: userEmail }).unwrap();
-      toast({
-        title: "Success",
-        description: response.message || "New OTP sent to your email",
-      });
+      
+      toast.success(response.message || "New OTP sent to your email", { duration: 5000 });
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.data?.message || "Failed to resend OTP.",
-        variant: "destructive",
-      });
+      
+      toast.error(error.data?.message || "Failed to resend OTP.", { duration: 5000 });
     }
   };
 
@@ -116,6 +147,8 @@ export function LoginForm({
   };
 
   const handleGoogleSignIn = () => {
+    // Clear any existing logout flag before Google login
+    sessionStorage.removeItem("isLoggedOut");
     window.location.href = "http://localhost:3000/auth/google/login";
   };
 

@@ -10,13 +10,13 @@ import { AdminSidebar } from "./admin-sidebar";
 import { UserSidebar } from "./user-sidebar";
 import { PulseLogo } from "./pulse-logo";
 
-type UserType = "admin" | "user";
+type UserType = "super_admin" | "user";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   userType?: UserType;
 }
 
-export function AppSidebar({ userType = "admin", ...props }: AppSidebarProps) {
+export function AppSidebar({ userType = "super_admin", ...props }: AppSidebarProps) {
   return (
     <Sidebar
       {...props}
@@ -27,7 +27,7 @@ export function AppSidebar({ userType = "admin", ...props }: AppSidebarProps) {
       </SidebarHeader>
 
       <SidebarContent className="gap-0 bg-white dark:bg-slate-900">
-        {userType === "admin" ? <AdminSidebar /> : <UserSidebar />}
+        {userType === "super_admin" ? <AdminSidebar /> : <UserSidebar />}
       </SidebarContent>
       <SidebarRail className="bg-slate-100 dark:bg-slate-800 w-px" />
     </Sidebar>

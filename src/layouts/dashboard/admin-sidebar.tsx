@@ -61,6 +61,16 @@ const adminNavItems: NavItem[] = [
     title: "Tests",
     url: "/admin/tests",
     icon: FileText,
+    items: [
+      {
+        title: "Manage Tests",
+        url: "/admin/tests",
+      },
+      {
+        title: "Test Results",
+        url: "/admin/tests/results",
+      },
+    ],
   },
   {
     title: "Instructors",
