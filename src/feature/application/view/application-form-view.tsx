@@ -17,7 +17,6 @@ import { applicationFormSchema, ApplicationFormData } from "../data/schema";
 import { STEPS } from "../data/constants";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { useSaveUserMutation } from "@/service/rtk-query/users/users-apis";
 import { CheckCircle } from "lucide-react";
 
 const PERSONAL_INFO_FIELDS: (keyof ApplicationFormData)[] = [
@@ -55,9 +54,9 @@ const AVAILABILITY_FIELDS: (keyof ApplicationFormData)[] = [
 export function ApplicationFormView() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const router = useRouter();
-  const [saveUser, { isLoading: isSaving }] = useSaveUserMutation();
   const form = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationFormSchema),
     mode: "onBlur",
@@ -139,6 +138,9 @@ export function ApplicationFormView() {
 
   const handleSubmit = async (data: ApplicationFormData) => {
     try {
+      setIsSaving(true);
+      
+      // Prepare payload matching API route expectations
       const payload = {
         ...data,
         experiences: data.experiences?.map((e) => ({
@@ -147,13 +149,31 @@ export function ApplicationFormView() {
           from: e.from ? new Date(e.from).toISOString() : undefined,
           to: e.to ? new Date(e.to).toISOString() : undefined,
         })),
-        applicationStatus: "pending" as const,
       };
-      await saveUser(payload).unwrap();
+
+      // Submit to API route
+      const response = await fetch("/api/submit-application", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Failed to submit application");
+      }
+
+      toast.success(result.message || "Application submitted successfully");
       setIsComplete(true);
     } catch (err) {
       console.error("Failed to submit application", err);
-      toast.error("Failed to submit application");
+      const errorMessage = err instanceof Error ? err.message : "Failed to submit application";
+      toast.error(errorMessage);
+    } finally {
+      setIsSaving(false);
     }
   };
 
