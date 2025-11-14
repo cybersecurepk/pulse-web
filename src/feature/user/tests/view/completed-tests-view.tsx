@@ -85,9 +85,6 @@ export function CompletedTestsView({ userId }: CompletedTestsViewProps) {
             <p className="text-muted-foreground text-center mb-4">
               You haven't completed any tests yet.
             </p>
-            {/* <p className="text-sm text-muted-foreground mt-2">
-              User ID: {effectiveUserId || "Not available"}
-            </p> */}
           </CardContent>
         </Card>
       ) : (
@@ -134,11 +131,6 @@ export function CompletedTestsView({ userId }: CompletedTestsViewProps) {
                     </div>
                   </div>
                   <div className="mt-4 flex gap-2">
-                    <Button asChild variant="secondary" size="sm" className="flex-1">
-                      <Link href={`/user/tests/results/${test.id}`}>
-                        View Results
-                      </Link>
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
