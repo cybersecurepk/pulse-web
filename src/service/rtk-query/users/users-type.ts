@@ -39,7 +39,7 @@ export interface User {
   name: string;
   email: string;
   role: "super_admin" | "admin" | "company_admin" | "employee" | "applicant" | "user";
-  gender: "male" | "female" | "other";
+  gender: "Male" | "Female" | "Other";
   primaryPhone: string;
   secondaryPhone?: string;
   currentCity: string;

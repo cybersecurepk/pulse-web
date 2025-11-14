@@ -7,5 +7,5 @@ type Props = {
 };
 
 export default function UserLayout({ children }: Props) {
-  return <DashboardLayout userType="user">{children}</DashboardLayout>;
+  return <DashboardLayout>{children}</DashboardLayout>;
 }

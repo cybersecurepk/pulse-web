@@ -118,8 +118,10 @@ export function LoginForm({
 
       toast.success("Login successful!", { duration: 5000 });
 
-      // Redirect based on role - using correct role values
-      if (response.user.role === "super_admin") {
+      // Check if user is an admin (handle multiple admin roles)
+      const isAdmin = response.user.role === "super_admin" || response.user.role === "company_admin";
+      
+      if (isAdmin) {
         router.push("/admin/dashboard");
       } else {
         router.push("/user/dashboard");

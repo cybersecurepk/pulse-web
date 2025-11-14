@@ -9,14 +9,25 @@ import {
 import { AdminSidebar } from "./admin-sidebar";
 import { UserSidebar } from "./user-sidebar";
 import { PulseLogo } from "./pulse-logo";
+import { useSafeSession } from "@/hooks/use-session";
 
-type UserType = "super_admin" | "user";
+type UserType = "admin" | "user";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   userType?: UserType;
 }
 
-export function AppSidebar({ userType = "super_admin", ...props }: AppSidebarProps) {
+export function AppSidebar({ userType, ...props }: AppSidebarProps) {
+  const { data: session } = useSafeSession();
+  
+  // Determine if user is an admin based on their role
+  const isAdmin = session?.user?.role === "super_admin" || 
+                 session?.user?.role === "company_admin" ||
+                 session?.user?.role === "admin";
+  
+  // Use the determined user type or fallback to the provided userType prop
+  const effectiveUserType = userType || (isAdmin ? "admin" : "user");
+
   return (
     <Sidebar
       {...props}
@@ -27,7 +38,7 @@ export function AppSidebar({ userType = "super_admin", ...props }: AppSidebarPro
       </SidebarHeader>
 
       <SidebarContent className="gap-0 bg-white dark:bg-slate-900">
-        {userType === "super_admin" ? <AdminSidebar /> : <UserSidebar />}
+        {effectiveUserType === "admin" ? <AdminSidebar /> : <UserSidebar />}
       </SidebarContent>
       <SidebarRail className="bg-slate-100 dark:bg-slate-800 w-px" />
     </Sidebar>

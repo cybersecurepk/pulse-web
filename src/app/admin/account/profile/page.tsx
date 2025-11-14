@@ -1,17 +1,29 @@
+"use client";
+
 import { MyProfileView } from "@/feature/admin/account/view";
-import { Suspense } from "react";
+import { useSafeSession } from "@/hooks/use-session";
+import { notFound, useRouter } from "next/navigation";
+import { useEffect } from "react";
 
-export const metadata = { title: `My Profile` };
+export default function Page() {
+  const router = useRouter();
+  const { data: session, status } = useSafeSession();
 
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: Promise<{ id?: string }>;
-}) {
-  const params = await searchParams;
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <MyProfileView userId={params.id || "1"} />
-    </Suspense>
-  );
+  // Redirect to the dynamic route with the user's own ID
+  useEffect(() => {
+    if (session?.user?.id) {
+      router.replace(`/admin/account/profile/${session.user.id}`);
+    }
+  }, [session, router]);
+
+  if (status === "loading") {
+    return <div>Loading...</div>;
+  }
+
+  if (status === "unauthenticated" || !session?.user?.id) {
+    return notFound();
+  }
+
+  // This page will redirect to the dynamic route, so we don't need to render anything
+  return <div>Redirecting...</div>;
 }

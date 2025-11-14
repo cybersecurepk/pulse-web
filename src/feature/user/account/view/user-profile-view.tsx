@@ -1,127 +1,71 @@
 "use client";
 
 import React from "react";
-// import { useSafeSession } from "@/hooks/use-session";
-// import {
-//   ProfileFormComponent,
-//   ProfileFormData,
-// } from "@/components/core/profile-section/profile-form";
-// import { useGetUserByIdQuery, useUpdateUserMutation } from "@/service/rtk-query/users/users-apis";
-// import { useRouter } from "next/navigation";
-// import { toast } from "sonner";
+import { useSafeSession } from "@/hooks/use-session";
+import {
+  ProfileWrapper,
+  ProfileFormData,
+} from "@/components/core/profile-section";
+import { useGetUserByIdQuery } from "@/service/rtk-query/users/users-apis";
+import { notFound } from "next/navigation";
 
 export function UserProfileView() {
-   return <div>User profile View</div>;
-  // const { data: session } = useSafeSession();
-  // const router = useRouter();
-  // const [updateUser] = useUpdateUserMutation();
+  const { data: session, status } = useSafeSession();
   
-  // // For now, we'll fetch the user data without a specific ID and handle it in the component
-  // // In a real app, you'd get the user ID from the session or JWT token
-  // const { data: userData, isLoading, isError } = useGetUserByIdQuery('current', {
-  //   skip: !session // Skip if no session
-  // });
+  // Fetch user data using the user ID from session
+  const { data: userData, isLoading, isError } = useGetUserByIdQuery(session?.user?.id || '', {
+    skip: !session?.user?.id || status !== 'authenticated'
+  });
 
-  // const handleSave = async (data: ProfileFormData) => {
-  //   try {
-  //     if (!userData?.id) {
-  //       toast.error("User ID not available");
-  //       return;
-  //     }
-      
-  //     // Prepare data for update (only include fields that should be updated)
-  //     const updateData = {
-  //       name: data.name,
-  //       gender: data.gender,
-  //       primaryPhone: data.primaryPhone,
-  //       secondaryPhone: data.secondaryPhone,
-  //       currentCity: data.currentCity,
-  //       permanentCity: data.permanentCity,
-  //       email: data.email,
-  //       yearsOfEducation: data.yearsOfEducation,
-  //       highestDegree: data.highestDegree,
-  //       majors: data.majors,
-  //       university: data.university,
-  //       yearOfCompletion: data.yearOfCompletion,
-  //       totalExperience: data.totalExperience,
-  //       experienceUnit: data.experienceUnit,
-  //       experiences: data.experiences?.map(exp => ({
-  //         organization: exp.organization,
-  //         designation: exp.designation,
-  //         from: exp.from ? exp.from.toISOString() : undefined,
-  //         to: exp.to ? exp.to.toISOString() : undefined,
-  //       })),
-  //       // Add required fields with default values
-  //       workingDays: "yes",
-  //       weekends: "yes",
-  //       onsiteSessions: "yes",
-  //       remoteSessions: "yes",
-  //       blueTeam: false,
-  //       redTeam: false,
-  //       grc: false,
-  //       consent: true,
-  //       applicationStatus: "pending" as const,
-  //     };
-      
-  //     await updateUser({ 
-  //       id: userData.id, 
-  //       payload: updateData 
-  //     }).unwrap();
-      
-  //     toast.success("Profile updated successfully");
-  //   } catch (error) {
-  //     console.error("Error updating profile:", error);
-  //     toast.error("Failed to update profile");
-  //   }
-  // };
+  if (status === 'loading' || isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p>Loading profile...</p>
+      </div>
+    );
+  }
 
-  // if (isLoading) {
-  //   return (
-  //     <div className="flex justify-center items-center min-h-screen">
-  //       <p>Loading profile...</p>
-  //     </div>
-  //   );
-  // }
+  if (status === 'unauthenticated' || !session?.user?.id || isError || !userData) {
+    return notFound();
+  }
 
-  // if (isError || !userData) {
-  //   return (
-  //     <div className="flex justify-center items-center min-h-screen">
-  //       <p>Error loading profile data</p>
-  //     </div>
-  //   );
-  // }
+  // Convert user data to profile form data
+  const profileData: ProfileFormData = {
+    name: userData.name || "",
+    gender: userData.gender || "other",
+    primaryPhone: userData.primaryPhone || "",
+    secondaryPhone: userData.secondaryPhone || "",
+    currentCity: userData.currentCity || "",
+    permanentCity: userData.permanentCity || "",
+    email: userData.email || "",
+    yearsOfEducation: userData.yearsOfEducation || "12",
+    highestDegree: userData.highestDegree || "HSSC",
+    majors: userData.majors || "",
+    university: userData.university || "",
+    yearOfCompletion: userData.yearOfCompletion || "",
+    totalExperience: userData.totalExperience || "",
+    experienceUnit: userData.experienceUnit || "years",
+    experiences: userData.experiences?.map(exp => ({
+      organization: exp.organization,
+      designation: exp.designation,
+      from: exp.from ? new Date(exp.from) : undefined,
+      to: exp.to ? new Date(exp.to) : undefined,
+    })) || [],
+    workingDays: userData.workingDays || "no",
+    weekends: userData.weekends || "no",
+    onsiteSessions: userData.onsiteSessions || "no",
+    remoteSessions: userData.remoteSessions || "no",
+    blueTeam: userData.blueTeam || false,
+    redTeam: userData.redTeam || false,
+    grc: userData.grc || false,
+  };
 
-  // // Convert user data to profile form data
-  // const profileData: Partial<ProfileFormData> = {
-  //   name: userData.name || "",
-  //   gender: userData.gender,
-  //   primaryPhone: userData.primaryPhone || "",
-  //   secondaryPhone: userData.secondaryPhone || "",
-  //   currentCity: userData.currentCity || "",
-  //   permanentCity: userData.permanentCity || "",
-  //   email: userData.email || "",
-  //   yearsOfEducation: userData.yearsOfEducation,
-  //   highestDegree: userData.highestDegree,
-  //   majors: userData.majors || "",
-  //   university: userData.university || "",
-  //   yearOfCompletion: userData.yearOfCompletion || "",
-  //   totalExperience: userData.totalExperience || "",
-  //   experienceUnit: userData.experienceUnit || "years",
-  //   experiences: userData.experiences?.map(exp => ({
-  //     organization: exp.organization,
-  //     designation: exp.designation,
-  //     from: exp.from ? new Date(exp.from) : undefined,
-  //     to: exp.to ? new Date(exp.to) : undefined,
-  //   })) || [],
-  // };
-
-  // return (
-  //   <ProfileFormComponent
-  //     initialData={profileData}
-  //     onSave={handleSave}
-  //     title="My Profile"
-  //     description="Manage your personal details and avatar."
-  //     backUrl="/user/dashboard"
-  //   />
-  // );
+  return (
+    <ProfileWrapper
+      profileData={profileData}
+      userId={userData.id}
+      title="My Profile"
+      description="Manage your personal details and avatar."
+    />
+  );
 }

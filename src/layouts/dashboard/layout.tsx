@@ -23,12 +23,10 @@ import { useEffect } from "react";
 
 export type DashboardLayoutProps = {
   children: React.ReactNode;
-  userType?: "super_admin" | "user";
 };
 
 export function DashboardLayout({
   children,
-  userType = "super_admin",
 }: DashboardLayoutProps) {
   const { data: session, status } = useSafeSession();
   const router = useRouter();
@@ -80,7 +78,7 @@ export function DashboardLayout({
   
   return (
     <SidebarProvider>
-      <AppSidebar userType={userType} />
+      <AppSidebar />
       <SidebarInset className="overflow-x-hidden">
         {/* Header */}
         <header className="bg-white dark:bg-slate-900 sticky top-0 flex h-16 shrink-0 items-center justify-between border-b border-slate-200 dark:border-slate-700 px-6 z-10 shadow-sm">

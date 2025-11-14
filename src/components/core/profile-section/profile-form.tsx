@@ -25,17 +25,16 @@ import {
   Camera,
   User,
   IdCard,
-  Cake,
-  MapPin,
-  Phone,
-  Mail,
-  Edit3,
   Save,
   X,
-  Trash2,
   GraduationCap,
   Briefcase,
   PlusIcon,
+  Calendar,
+  Monitor,
+  Users,
+  Shield,
+  CheckCircle,
 } from "lucide-react";
 import {
   Select,
@@ -48,18 +47,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { DatePickerField } from "@/components/core/hook-form/date-picker-field";
-
-// Import constants and types from the application form
 import { CITIES } from "@/feature/application/data/constants";
 import { YEARS_OF_EDUCATION, DEGREES } from "@/feature/application/data/constants";
 
-// Validation schema - extended to include application form fields (excluding availability and interests)
 const profileSchema = z.object({
   profileImage: z.string().optional(),
   
   // Application form fields - Personal Information
   name: z.string().min(1, "Name is required"),
-  gender: z.enum(["male", "female", "other"], {
+  gender: z.enum(["Male", "Female", "Other"], {
     message: "Gender is required",
   }),
   primaryPhone: z.string().min(1, "Primary phone is required"),
@@ -90,6 +86,23 @@ const profileSchema = z.object({
     from: z.date().optional(),
     to: z.date().optional(),
   })).optional(),
+  
+  // Additional profile information
+  workingDays: z.enum(["yes", "no"], {
+    message: "Working days preference is required",
+  }),
+  weekends: z.enum(["yes", "no"], {
+    message: "Weekends preference is required",
+  }),
+  onsiteSessions: z.enum(["yes", "no"], {
+    message: "Onsite sessions preference is required",
+  }),
+  remoteSessions: z.enum(["yes", "no"], {
+    message: "Remote sessions preference is required",
+  }),
+  blueTeam: z.boolean(),
+  redTeam: z.boolean(),
+  grc: z.boolean(),
 });
 
 export type ProfileFormData = z.infer<typeof profileSchema>;
@@ -163,11 +176,16 @@ export function ProfileFormComponent({
       majors: initialData?.majors || "",
       university: initialData?.university || "",
       yearOfCompletion: initialData?.yearOfCompletion || "",
-      
-      // Application form fields - Experience
       totalExperience: initialData?.totalExperience || "",
       experienceUnit: initialData?.experienceUnit || "years",
       experiences: initialData?.experiences || [],
+      workingDays: initialData?.workingDays || "no",
+      weekends: initialData?.weekends || "no",
+      onsiteSessions: initialData?.onsiteSessions || "no",
+      remoteSessions: initialData?.remoteSessions || "no",
+      blueTeam: initialData?.blueTeam || false,
+      redTeam: initialData?.redTeam || false,
+      grc: initialData?.grc || false,
     },
   });
 
@@ -238,13 +256,13 @@ export function ProfileFormComponent({
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          {backUrl && (
+          {/* {backUrl && (
             <Link href={backUrl}>
               <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </Link>
-          )}
+          )} */}
           <IdCard className="h-8 w-8 text-muted-foreground" />
           <h1 className="text-3xl font-bold tracking-tight">
             {displayTitle}
@@ -294,21 +312,21 @@ export function ProfileFormComponent({
                   </Label>
                   {showEditControls ? (
                     <RadioGroup
-                      onValueChange={(value) => form.setValue("gender", value as "male" | "female" | "other")}
+                      onValueChange={(value) => form.setValue("gender", value as "Male" | "Female" | "Other")}
                       defaultValue={form.getValues("gender")}
                       className="flex gap-4"
                     >
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="male" id="male" />
+                        <RadioGroupItem value="Male" id="male" />
                         <Label htmlFor="male">Male</Label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="female" id="female" />
+                        <RadioGroupItem value="Female" id="female" />
                         <Label htmlFor="female">Female</Label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="other" id="other" />
-                        <Label htmlFor="other">Others</Label>
+                        <RadioGroupItem value="Other" id="other" />
+                        <Label htmlFor="other">Other</Label>
                       </div>
                     </RadioGroup>
                   ) : (
@@ -671,6 +689,203 @@ export function ProfileFormComponent({
 
               <Separator />
 
+              {/* Additional Profile Information */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold">Availability</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>
+                      Working Days<span className="text-destructive">*</span>
+                    </Label>
+                    {showEditControls ? (
+                      <Select 
+                        onValueChange={(value) => form.setValue("workingDays", value as "yes" | "no")}
+                        defaultValue={form.getValues("workingDays")}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select preference" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="yes">Yes</SelectItem>
+                          <SelectItem value="no">No</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="p-2 border rounded-md">
+                        {profileData.workingDays === "yes" ? "Available" : "Not Available"}
+                      </div>
+                    )}
+                    {form.formState.errors.workingDays && (
+                      <p className="text-sm text-destructive">
+                        {form.formState.errors.workingDays.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>
+                      Weekends<span className="text-destructive">*</span>
+                    </Label>
+                    {showEditControls ? (
+                      <Select 
+                        onValueChange={(value) => form.setValue("weekends", value as "yes" | "no")}
+                        defaultValue={form.getValues("weekends")}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select preference" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="yes">Yes</SelectItem>
+                          <SelectItem value="no">No</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="p-2 border rounded-md">
+                        {profileData.weekends === "yes" ? "Available" : "Not Available"}
+                      </div>
+                    )}
+                    {form.formState.errors.weekends && (
+                      <p className="text-sm text-destructive">
+                        {form.formState.errors.weekends.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>
+                      Onsite Sessions<span className="text-destructive">*</span>
+                    </Label>
+                    {showEditControls ? (
+                      <Select 
+                        onValueChange={(value) => form.setValue("onsiteSessions", value as "yes" | "no")}
+                        defaultValue={form.getValues("onsiteSessions")}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select preference" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="yes">Yes</SelectItem>
+                          <SelectItem value="no">No</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="p-2 border rounded-md">
+                        {profileData.onsiteSessions === "yes" ? "Available" : "Not Available"}
+                      </div>
+                    )}
+                    {form.formState.errors.onsiteSessions && (
+                      <p className="text-sm text-destructive">
+                        {form.formState.errors.onsiteSessions.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>
+                      Remote Sessions<span className="text-destructive">*</span>
+                    </Label>
+                    {showEditControls ? (
+                      <Select 
+                        onValueChange={(value) => form.setValue("remoteSessions", value as "yes" | "no")}
+                        defaultValue={form.getValues("remoteSessions")}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select preference" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="yes">Yes</SelectItem>
+                          <SelectItem value="no">No</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="p-2 border rounded-md">
+                        {profileData.remoteSessions === "yes" ? "Available" : "Not Available"}
+                      </div>
+                    )}
+                    {form.formState.errors.remoteSessions && (
+                      <p className="text-sm text-destructive">
+                        {form.formState.errors.remoteSessions.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Interests & Specializations */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold">Interests & Specializations</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex items-center space-x-2">
+                    {showEditControls ? (
+                      <Checkbox
+                        id="blueTeam"
+                        checked={form.watch("blueTeam")}
+                        onCheckedChange={(checked) => form.setValue("blueTeam", !!checked)}
+                      />
+                    ) : (
+                      <div className="flex items-center h-5">
+                        {profileData.blueTeam ? (
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                        ) : (
+                          <div className="h-5 w-5 border rounded"></div>
+                        )}
+                      </div>
+                    )}
+                    <Label htmlFor="blueTeam">Blue Team</Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    {showEditControls ? (
+                      <Checkbox
+                        id="redTeam"
+                        checked={form.watch("redTeam")}
+                        onCheckedChange={(checked) => form.setValue("redTeam", !!checked)}
+                      />
+                    ) : (
+                      <div className="flex items-center h-5">
+                        {profileData.redTeam ? (
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                        ) : (
+                          <div className="h-5 w-5 border rounded"></div>
+                        )}
+                      </div>
+                    )}
+                    <Label htmlFor="redTeam">Red Team</Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    {showEditControls ? (
+                      <Checkbox
+                        id="grc"
+                        checked={form.watch("grc")}
+                        onCheckedChange={(checked) => form.setValue("grc", !!checked)}
+                      />
+                    ) : (
+                      <div className="flex items-center h-5">
+                        {profileData.grc ? (
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                        ) : (
+                          <div className="h-5 w-5 border rounded"></div>
+                        )}
+                      </div>
+                    )}
+                    <Label htmlFor="grc">GRC</Label>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
               {/* Action Buttons */}
               {(isEditing || isEditMode) && !viewOnly && (
                 <div className="flex justify-between pt-4">
@@ -680,7 +895,7 @@ export function ProfileFormComponent({
                       variant="outline"
                       onClick={() => {
                         if (isEditMode && userId) {
-                          router.push(`/admin/account/profile?id=${userId}`);
+                          router.push(`/admin/account/profile/${userId}`);
                         } else if (backUrl) {
                           router.push(backUrl);
                         } else {
@@ -692,7 +907,7 @@ export function ProfileFormComponent({
                       Cancel
                     </Button>
 
-                    <Button type="submit" disabled={isSaving}>
+                    <Button type="submit" disabled={isSaving} className="cursor-pointer">
                       <Save className="h-4 w-4 mr-2" />
                       {isSaving ? "Saving..." : "Save Changes"}
                     </Button>

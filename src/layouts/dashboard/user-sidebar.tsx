@@ -72,9 +72,19 @@ export function UserSidebar() {
           {userNavItems.map((item) => {
             const isActive = pathname === item.url;
             const hasChildren = item.items && item.items.length > 0;
+            
+            // Special handling for profile routes to match dynamic URLs
+            const isProfileRoute = pathname.startsWith('/user/profile');
             const isAnyChildActive = item.items?.some(
-              (child) => pathname === child.url
+              (child) => {
+                if (child.url === '/user/profile') {
+                  // For profile, check if current path starts with the profile base URL
+                  return isProfileRoute;
+                }
+                return pathname === child.url;
+              }
             );
+            
             const shouldHighlight = isActive || isAnyChildActive;
 
             if (hasChildren) {
@@ -113,7 +123,10 @@ export function UserSidebar() {
                     <CollapsibleContent className="mt-1">
                       <SidebarMenuSub className="space-y-1">
                         {item.items?.map((subItem) => {
-                          const isSubActive = pathname === subItem.url;
+                          // Special handling for profile route active state
+                          const isSubActive = subItem.url === '/user/profile' 
+                            ? isProfileRoute 
+                            : pathname === subItem.url;
 
                           return (
                             <SidebarMenuSubItem key={subItem.title}>

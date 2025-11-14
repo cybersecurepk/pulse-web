@@ -34,9 +34,9 @@ export function PersonalInfoStep({ form }: PersonalInfoStepProps) {
         name="gender"
         label="Gender"
         options={[
-          { value: "male", label: "Male" },
-          { value: "female", label: "Female" },
-          { value: "other", label: "Others" },
+          { value: "Male", label: "Male" },
+          { value: "Female", label: "Female" },
+          { value: "Other", label: "Other" },
         ]}
         required
       />

@@ -126,7 +126,7 @@ export function EditProfileView({ userId }: EditProfileViewProps) {
       await updateUser({ id: userId, payload }).unwrap();
       toast.success("Profile updated successfully");
       // Navigate back to the profile page - the cache will be invalidated and data refreshed
-      router.push(`/admin/account/profile/${userId}`);
+      router.push(`/user/profile/${userId}`);
     } catch (error) {
       console.error("Failed to update profile:", error);
       toast.error("Failed to update profile");
@@ -140,7 +140,7 @@ export function EditProfileView({ userId }: EditProfileViewProps) {
       onSave={handleSave}
       title="Edit Profile"
       description="Update your profile information"
-      backUrl={`/admin/account/profile/${userId}`}
+      backUrl={`/user/profile/${userId}`}
     />
   );
 }

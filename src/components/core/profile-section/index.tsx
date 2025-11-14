@@ -40,14 +40,26 @@ function ProfileWrapper({
   const handleEdit = () => {
     // Navigate to the edit page when userId is provided
     if (userId) {
-      router.push(`/admin/account/profile/edit?id=${userId}`);
+      // Check if we're in admin or user context based on the current path
+      const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+      if (isAdminRoute) {
+        router.push(`/admin/account/profile/edit/${userId}`);
+      } else {
+        router.push(`/user/profile/edit/${userId}`);
+      }
     }
   };
 
   // If we're supposed to start in edit mode and have a userId, navigate to edit page
   React.useEffect(() => {
     if (startInEditMode && userId) {
-      router.push(`/admin/account/profile/edit?id=${userId}`);
+      // Check if we're in admin or user context based on the current path
+      const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+      if (isAdminRoute) {
+        router.push(`/admin/account/profile/edit/${userId}`);
+      } else {
+        router.push(`/user/profile/edit/${userId}`);
+      }
     }
   }, [startInEditMode, userId, router]);
 

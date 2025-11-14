@@ -5,12 +5,13 @@ const mockProfiles: Record<string, ProfileFormData> = {
   "1": {
     // Application form fields - Personal Information
     name: "Luke Skywalker",
-    gender: "male",
+    gender: "Male",
     primaryPhone: "(+880)1795448106",
     secondaryPhone: "(+880)1795448107",
     currentCity: "Karachi",
     permanentCity: "Lahore",
     email: "luke.skywalker@email.com",
+    profileImage: "",
     
     // Application form fields - Education
     yearsOfEducation: "16",
@@ -36,15 +37,25 @@ const mockProfiles: Record<string, ProfileFormData> = {
         to: undefined,
       },
     ],
+    
+    // Additional profile information
+    workingDays: "yes",
+    weekends: "no",
+    onsiteSessions: "yes",
+    remoteSessions: "no",
+    blueTeam: true,
+    redTeam: false,
+    grc: false,
   },
   "2": {
     // Application form fields - Personal Information
     name: "Leia Organa",
-    gender: "female",
+    gender: "Female",
     primaryPhone: "(+880)1795448107",
     currentCity: "Islamabad",
     permanentCity: "Karachi",
     email: "leia.organa@email.com",
+    profileImage: "",
     
     // Application form fields - Education
     yearsOfEducation: "18",
@@ -64,6 +75,15 @@ const mockProfiles: Record<string, ProfileFormData> = {
         to: new Date("2023-01-01"),
       },
     ],
+    
+    // Additional profile information
+    workingDays: "no",
+    weekends: "yes",
+    onsiteSessions: "no",
+    remoteSessions: "yes",
+    blueTeam: false,
+    redTeam: true,
+    grc: true,
   },
 };
 

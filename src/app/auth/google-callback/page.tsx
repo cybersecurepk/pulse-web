@@ -49,7 +49,10 @@ export default function GoogleCallbackPage() {
             return;
           }
 
-          if (user.role === "super_admin") {
+          // Check if user is an admin (handle multiple admin roles)
+          const isAdmin = user.role === "super_admin" || user.role === "company_admin";
+          
+          if (isAdmin) {
             router.replace("/admin/dashboard");
           } else {
             router.replace("/user/dashboard");

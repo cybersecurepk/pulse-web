@@ -2,7 +2,17 @@
 
 import React from "react";
 import Link from "next/link";
-import { ArrowLeft, IdCard, User, Cake, MapPin, Phone, Mail, Edit3, GraduationCap, Briefcase } from "lucide-react";
+import { 
+  ArrowLeft, 
+  IdCard, 
+  User, 
+  Edit3, 
+  GraduationCap, 
+  Briefcase,
+  Calendar,
+  Users,
+  CheckCircle
+} from "lucide-react";
 import {
   Card,
   CardContent,
@@ -42,20 +52,20 @@ export function ProfileViewComponent({
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          {backUrl && (
+          {/* {backUrl && (
             <Link href={backUrl}>
               <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </Link>
-          )}
+          )} */}
           <IdCard className="h-8 w-8 text-muted-foreground" />
           <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
         </div>
         <p className="text-muted-foreground">{description}</p>
         {showEditButton && onEdit && (
           <div className="mt-4">
-            <Button onClick={onEdit}>
+            <Button onClick={onEdit} className="cursor-pointer">
               <Edit3 className="h-4 w-4 mr-2" />
               Edit Profile
             </Button>
@@ -178,6 +188,71 @@ export function ProfileViewComponent({
               ) : (
                 <p className="text-muted-foreground text-sm">No experience details provided</p>
               )}
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Additional Profile Information - Availability */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-muted-foreground" />
+              <h3 className="text-lg font-semibold">Availability</h3>
+            </div>
+
+            <DisplayFieldGroup
+              fields={[
+                { label: "Working Days", value: data.workingDays === "yes" ? "Available" : "Not Available" },
+                { label: "Weekends", value: data.weekends === "yes" ? "Available" : "Not Available" },
+                { label: "Onsite Sessions", value: data.onsiteSessions === "yes" ? "Available" : "Not Available" },
+                { label: "Remote Sessions", value: data.remoteSessions === "yes" ? "Available" : "Not Available" },
+              ]}
+              variant="default"
+            />
+          </div>
+
+          <Separator />
+
+          {/* Additional Profile Information - Interests & Specializations */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-muted-foreground" />
+              <h3 className="text-lg font-semibold">Interests & Specializations</h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center h-5">
+                  {data.blueTeam ? (
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <div className="h-5 w-5 border rounded"></div>
+                  )}
+                </div>
+                <span>Blue Team</span>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center h-5">
+                  {data.redTeam ? (
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <div className="h-5 w-5 border rounded"></div>
+                  )}
+                </div>
+                <span>Red Team</span>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center h-5">
+                  {data.grc ? (
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <div className="h-5 w-5 border rounded"></div>
+                  )}
+                </div>
+                <span>GRC</span>
+              </div>
             </div>
           </div>
         </CardContent>

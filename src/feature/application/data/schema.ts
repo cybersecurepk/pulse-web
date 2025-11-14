@@ -4,7 +4,7 @@ import { z } from "zod"
 export const applicationFormSchema = z.object({
   // Personal Information
   name: z.string().min(1, "Name is required"),
-  gender: z.enum(["male", "female", "other"], {
+  gender: z.enum(["Male", "Female", "Other"], {
     message: "Gender is required",
   }),
   primaryPhone: z.string().min(1, "Primary phone is required"),
